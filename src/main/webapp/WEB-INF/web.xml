@@ -3,4 +3,169 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
          version="6.0">
+
+    <!-- Application Name -->
+    <display-name>NotesSup - Student Grade Management System</display-name>
+
+    <!-- ===== SESSION CONFIGURATION ===== -->
+    <session-config>
+        <cookie-config>
+            <http-only>true</http-only>
+            <secure>true</secure>
+        </cookie-config>
+        <tracking-mode>COOKIE</tracking-mode>
+        <timeout>30</timeout> <!-- 30 minutes -->
+    </session-config>
+
+    <!-- ===== FILTER DEFINITIONS ===== -->
+    <!-- Security Header Filter -->
+    <filter>
+        <filter-name>SecurityHeaderFilter</filter-name>
+        <filter-class>org.ict4d.notessup.filters.SecurityHeaderFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>SecurityHeaderFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+        <dispatcher>FORWARD</dispatcher>
+    </filter-mapping>
+
+    <!-- Authentication Filter -->
+    <filter>
+        <filter-name>AuthenticationFilter</filter-name>
+        <filter-class>org.ict4d.notessup.filters.AuthenticationFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>AuthenticationFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+        <dispatcher>FORWARD</dispatcher>
+    </filter-mapping>
+
+    <!-- ===== SERVLET DEFINITIONS ===== -->
+    <!-- Login Servlet -->
+    <servlet>
+        <servlet-name>LoginServlet</servlet-name>
+        <servlet-class>org.ict4d.notessup.servlets.LoginServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LoginServlet</servlet-name>
+        <url-pattern>/login</url-pattern>
+    </servlet-mapping>
+
+    <!-- Logout Servlet -->
+    <servlet>
+        <servlet-name>LogoutServlet</servlet-name>
+        <servlet-class>org.ict4d.notessup.servlets.LogoutServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LogoutServlet</servlet-name>
+        <url-pattern>/logout</url-pattern>
+    </servlet-mapping>
+
+    <!-- Dashboard Servlet -->
+    <servlet>
+        <servlet-name>DashboardServlet</servlet-name>
+        <servlet-class>org.ict4d.notessup.servlets.DashboardServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DashboardServlet</servlet-name>
+        <url-pattern>/dashboard</url-pattern>
+    </servlet-mapping>
+
+    <!-- Etudiants Servlet -->
+    <servlet>
+        <servlet-name>EtudiantsServlet</servlet-name>
+        <servlet-class>org.ict4d.notessup.servlets.EtudiantsServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>EtudiantsServlet</servlet-name>
+        <url-pattern>/etudiants</url-pattern>
+    </servlet-mapping>
+
+    <!-- Matieres Servlet -->
+    <servlet>
+        <servlet-name>MatieresServlet</servlet-name>
+        <servlet-class>org.ict4d.notessup.servlets.MatieresServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>MatieresServlet</servlet-name>
+        <url-pattern>/matieres</url-pattern>
+    </servlet-mapping>
+
+    <!-- Notes Servlet -->
+    <servlet>
+        <servlet-name>NotesServlet</servlet-name>
+        <servlet-class>org.ict4d.notessup.servlets.NotesServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>NotesServlet</servlet-name>
+        <url-pattern>/notes</url-pattern>
+    </servlet-mapping>
+
+    <!-- Deliberations Servlet -->
+    <servlet>
+        <servlet-name>DeliberationsServlet</servlet-name>
+        <servlet-class>org.ict4d.notessup.servlets.DeliberationsServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DeliberationsServlet</servlet-name>
+        <url-pattern>/deliberations</url-pattern>
+    </servlet-mapping>
+
+    <!-- Bulletins Servlet -->
+    <servlet>
+        <servlet-name>BulletinsServlet</servlet-name>
+        <servlet-class>org.ict4d.notessup.servlets.BulletinsServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>BulletinsServlet</servlet-name>
+        <url-pattern>/bulletins</url-pattern>
+    </servlet-mapping>
+
+    <!-- Statistiques Servlet -->
+    <servlet>
+        <servlet-name>StatistiquesServlet</servlet-name>
+        <servlet-class>org.ict4d.notessup.servlets.StatistiquesServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>StatistiquesServlet</servlet-name>
+        <url-pattern>/statistiques</url-pattern>
+    </servlet-mapping>
+
+    <!-- Export Servlet -->
+    <servlet>
+        <servlet-name>ExportServlet</servlet-name>
+        <servlet-class>org.ict4d.notessup.servlets.ExportServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ExportServlet</servlet-name>
+        <url-pattern>/export</url-pattern>
+    </servlet-mapping>
+
+    <!-- ===== ERROR PAGE CONFIGURATION ===== -->
+    <!-- 404 Error Page -->
+    <error-page>
+        <error-code>404</error-code>
+        <location>/WEB-INF/errors/404.jsp</location>
+    </error-page>
+
+    <!-- 500 Error Page -->
+    <error-page>
+        <error-code>500</error-code>
+        <location>/WEB-INF/errors/500.jsp</location>
+    </error-page>
+
+    <!-- 403 Error Page -->
+    <error-page>
+        <error-code>403</error-code>
+        <location>/WEB-INF/errors/403.jsp</location>
+    </error-page>
+
+    <!-- ===== WELCOME FILES ===== -->
+    <welcome-file-list>
+        <welcome-file>index.jsp</welcome-file>
+        <welcome-file>index.html</welcome-file>
+    </welcome-file-list>
+
 </web-app>
