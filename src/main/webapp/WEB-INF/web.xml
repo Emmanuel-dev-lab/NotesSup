@@ -75,51 +75,51 @@
 
     <!-- Etudiants Servlet -->
     <servlet>
-        <servlet-name>EtudiantsServlet</servlet-name>
-        <servlet-class>org.ict4d.notessup.servlets.EtudiantsServlet</servlet-class>
+        <servlet-name>EtudiantServlet</servlet-name>
+        <servlet-class>org.ict4d.notessup.servlets.EtudiantServlet</servlet-class>
     </servlet>
     <servlet-mapping>
-        <servlet-name>EtudiantsServlet</servlet-name>
+        <servlet-name>EtudiantServlet</servlet-name>
         <url-pattern>/etudiants</url-pattern>
     </servlet-mapping>
 
     <!-- Matieres Servlet -->
     <servlet>
-        <servlet-name>MatieresServlet</servlet-name>
-        <servlet-class>org.ict4d.notessup.servlets.MatieresServlet</servlet-class>
+        <servlet-name>MatiereServlet</servlet-name>
+        <servlet-class>org.ict4d.notessup.servlets.MatiereServlet</servlet-class>
     </servlet>
     <servlet-mapping>
-        <servlet-name>MatieresServlet</servlet-name>
+        <servlet-name>MatiereServlet</servlet-name>
         <url-pattern>/matieres</url-pattern>
     </servlet-mapping>
 
     <!-- Notes Servlet -->
     <servlet>
-        <servlet-name>NotesServlet</servlet-name>
-        <servlet-class>org.ict4d.notessup.servlets.NotesServlet</servlet-class>
+        <servlet-name>NoteServlet</servlet-name>
+        <servlet-class>org.ict4d.notessup.servlets.NoteServlet</servlet-class>
     </servlet>
     <servlet-mapping>
-        <servlet-name>NotesServlet</servlet-name>
+        <servlet-name>NoteServlet</servlet-name>
         <url-pattern>/notes</url-pattern>
     </servlet-mapping>
 
     <!-- Deliberations Servlet -->
     <servlet>
-        <servlet-name>DeliberationsServlet</servlet-name>
-        <servlet-class>org.ict4d.notessup.servlets.DeliberationsServlet</servlet-class>
+        <servlet-name>DeliberationServlet</servlet-name>
+        <servlet-class>org.ict4d.notessup.servlets.DeliberationServlet</servlet-class>
     </servlet>
     <servlet-mapping>
-        <servlet-name>DeliberationsServlet</servlet-name>
+        <servlet-name>DeliberationServlet</servlet-name>
         <url-pattern>/deliberations</url-pattern>
     </servlet-mapping>
 
     <!-- Bulletins Servlet -->
     <servlet>
-        <servlet-name>BulletinsServlet</servlet-name>
-        <servlet-class>org.ict4d.notessup.servlets.BulletinsServlet</servlet-class>
+        <servlet-name>BulletinServlet</servlet-name>
+        <servlet-class>org.ict4d.notessup.servlets.BulletinServlet</servlet-class>
     </servlet>
     <servlet-mapping>
-        <servlet-name>BulletinsServlet</servlet-name>
+        <servlet-name>BulletinServlet</servlet-name>
         <url-pattern>/bulletins</url-pattern>
     </servlet-mapping>
 
