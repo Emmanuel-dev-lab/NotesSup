@@ -1,10 +1,11 @@
 package org.ict4d.notessup.servlets;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
+
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.ict4d.notessup.models.Etudiant;
 import org.ict4d.notessup.dao.EtudiantDAO;
 import org.ict4d.notessup.utils.Constants;
@@ -12,13 +13,21 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
-@WebServlet("/etudiants")
 public class EtudiantServlet extends HttpServlet {
     private final EtudiantDAO etudiantDAO = new EtudiantDAO();
     private static final int PAGE_SIZE = Constants.DEFAULT_PAGE_SIZE;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession(false);
+        String role = (String) session.getAttribute(Constants.SESSION_ROLE);
+
+        // Only CHEF_DEPT can view etudiants
+        if (!Constants.ROLE_CHEF.equals(role)) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+            return;
+        }
+
         String action = req.getParameter("action");
         String page = req.getParameter("page");
         String search = req.getParameter("search");
@@ -61,6 +70,15 @@ public class EtudiantServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession(false);
+        String role = (String) session.getAttribute(Constants.SESSION_ROLE);
+
+        // Only CHEF_DEPT can create/update etudiants
+        if (!Constants.ROLE_CHEF.equals(role)) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+            return;
+        }
+
         try {
             String action = req.getParameter("action");
 
@@ -103,6 +121,15 @@ public class EtudiantServlet extends HttpServlet {
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession(false);
+        String role = (String) session.getAttribute(Constants.SESSION_ROLE);
+
+        // Only CHEF_DEPT can delete etudiants
+        if (!Constants.ROLE_CHEF.equals(role)) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+            return;
+        }
+
         try {
             String id = req.getParameter("id");
             etudiantDAO.delete(Long.parseLong(id));

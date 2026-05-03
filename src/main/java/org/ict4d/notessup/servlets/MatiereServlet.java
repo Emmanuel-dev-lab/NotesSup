@@ -1,10 +1,11 @@
 package org.ict4d.notessup.servlets;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
+
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.ict4d.notessup.models.Matiere;
 import org.ict4d.notessup.dao.MatiereDAO;
 import org.ict4d.notessup.utils.Constants;
@@ -12,13 +13,30 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
-@WebServlet("/matieres")
 public class MatiereServlet extends HttpServlet {
     private final MatiereDAO matiereDAO = new MatiereDAO();
     private static final int PAGE_SIZE = Constants.DEFAULT_PAGE_SIZE;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession(false);
+        String role = (String) session.getAttribute(Constants.SESSION_ROLE);
+
+        // CHEF_DEPT and ENSEIGNANT can view matieres (read-only for ENSEIGNANT)
+        if (!Constants.ROLE_CHEF.equals(role) && !Constants.ROLE_ENSEIGNANT.equals(role)) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+            return;
+        }
+
+        // ENSEIGNANT cannot see add/edit forms
+        if (Constants.ROLE_ENSEIGNANT.equals(role)) {
+            String action = req.getParameter("action");
+            if ("add".equals(action) || "edit".equals(action)) {
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+                return;
+            }
+        }
+
         String action = req.getParameter("action");
         String page = req.getParameter("page");
         String search = req.getParameter("search");
@@ -69,6 +87,15 @@ public class MatiereServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession(false);
+        String role = (String) session.getAttribute(Constants.SESSION_ROLE);
+
+        // Only CHEF_DEPT can create/update matieres
+        if (!Constants.ROLE_CHEF.equals(role)) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+            return;
+        }
+
         try {
             String action = req.getParameter("action");
 
@@ -111,6 +138,15 @@ public class MatiereServlet extends HttpServlet {
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession(false);
+        String role = (String) session.getAttribute(Constants.SESSION_ROLE);
+
+        // Only CHEF_DEPT can delete matieres
+        if (!Constants.ROLE_CHEF.equals(role)) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+            return;
+        }
+
         try {
             String id = req.getParameter("id");
             matiereDAO.delete(Long.parseLong(id));

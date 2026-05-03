@@ -1,16 +1,19 @@
 package org.ict4d.notessup.servlets;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
+
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.ict4d.notessup.dao.EtudiantDAO;
 import org.ict4d.notessup.dao.NoteDAO;
 import org.ict4d.notessup.dao.MatiereDAO;
 import org.ict4d.notessup.models.Note;
 import org.ict4d.notessup.models.Etudiant;
+import org.ict4d.notessup.models.User;
 import org.ict4d.notessup.services.NoteService;
+import org.ict4d.notessup.utils.Constants;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -22,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@WebServlet("/statistiques")
 public class StatistiquesServlet extends HttpServlet {
     private final EtudiantDAO etudiantDAO = new EtudiantDAO();
     private final NoteDAO noteDAO = new NoteDAO();
@@ -31,7 +33,11 @@ public class StatistiquesServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String session = req.getParameter("session");
+        HttpSession session = req.getSession(false);
+        String role = (String) session.getAttribute(Constants.SESSION_ROLE);
+        User user = (User) session.getAttribute(Constants.SESSION_USER);
+
+        String sessionParam = req.getParameter("session");
         String anneeAcademique = req.getParameter("annee");
         String filiere = req.getParameter("filiere");
 
@@ -39,7 +45,7 @@ public class StatistiquesServlet extends HttpServlet {
             // Get all notes for the session
             List<Note> allNotes = noteDAO.findAll(1000, 0);
             List<Note> sessionNotes = allNotes.stream()
-                    .filter(n -> (session == null || session.equals(n.getSession())) &&
+                    .filter(n -> (sessionParam == null || sessionParam.equals(n.getSession())) &&
                             (anneeAcademique == null || anneeAcademique.equals(n.getAnneeAcademique())))
                     .collect(Collectors.toList());
 
@@ -77,12 +83,19 @@ public class StatistiquesServlet extends HttpServlet {
             Map<Long, Integer> etudiantAdmis = new HashMap<>();
 
             for (Etudiant etudiant : etudiants) {
+                // ETUDIANT can only see their own stats
+                if (Constants.ROLE_ETUDIANT.equals(role)) {
+                    if (!etudiant.getId().equals(user.getEtudiantId())) {
+                        continue;
+                    }
+                }
+
                 if (filiere != null && !filiere.isEmpty() && !filiere.equals(etudiant.getFiliere())) {
                     continue;
                 }
 
                 BigDecimal moyenne = noteService.calcMoyennePonderee(etudiant.getId(),
-                        session != null ? session : "JUIN",
+                        sessionParam != null ? sessionParam : "JUIN",
                         anneeAcademique != null ? anneeAcademique : "2024/2025");
                 etudiantMoyennes.put(etudiant.getId(), moyenne);
                 etudiantAdmis.put(etudiant.getId(), noteService.isAdmis(moyenne) ? 1 : 0);
@@ -124,7 +137,7 @@ public class StatistiquesServlet extends HttpServlet {
             req.setAttribute("etudiantMoyennes", etudiantMoyennes);
             req.setAttribute("etudiantAdmis", etudiantAdmis);
             req.setAttribute("matierePassRates", matierePassRates);
-            req.setAttribute("session", session != null ? session : "JUIN");
+            req.setAttribute("session", sessionParam != null ? sessionParam : "JUIN");
             req.setAttribute("anneeAcademique", anneeAcademique != null ? anneeAcademique : "2024/2025");
             req.setAttribute("filiere", filiere);
 

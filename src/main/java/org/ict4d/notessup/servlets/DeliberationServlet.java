@@ -1,10 +1,11 @@
 package org.ict4d.notessup.servlets;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
+
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.ict4d.notessup.models.Deliberation;
 import org.ict4d.notessup.models.Etudiant;
 import org.ict4d.notessup.dao.DeliberationDAO;
@@ -19,7 +20,6 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
-@WebServlet("/deliberations")
 public class DeliberationServlet extends HttpServlet {
     private final DeliberationDAO deliberationDAO = new DeliberationDAO();
     private final EtudiantDAO etudiantDAO = new EtudiantDAO();
@@ -30,6 +30,15 @@ public class DeliberationServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession(false);
+        String role = (String) session.getAttribute(Constants.SESSION_ROLE);
+
+        // CHEF_DEPT and ENSEIGNANT can view deliberations (see PV)
+        if (!Constants.ROLE_CHEF.equals(role) && !Constants.ROLE_ENSEIGNANT.equals(role)) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+            return;
+        }
+
         String action = req.getParameter("action");
         String page = req.getParameter("page");
         String filiere = req.getParameter("filiere");
@@ -76,11 +85,18 @@ public class DeliberationServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession(false);
+        String role = (String) session.getAttribute(Constants.SESSION_ROLE);
+
         try {
             String action = req.getParameter("action");
 
             if ("publish".equals(action)) {
-                // Publish deliberation and send SMS
+                // Publish deliberation (CHEF_DEPT only)
+                if (!Constants.ROLE_CHEF.equals(role)) {
+                    resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+                    return;
+                }
                 String id = req.getParameter("id");
                 Deliberation deliberation = deliberationDAO.findById(Long.parseLong(id));
 
@@ -107,7 +123,11 @@ public class DeliberationServlet extends HttpServlet {
                 resp.sendRedirect(req.getContextPath() + "/deliberations");
 
             } else {
-                // Create new deliberation
+                // Create new deliberation (CHEF_DEPT only)
+                if (!Constants.ROLE_CHEF.equals(role)) {
+                    resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+                    return;
+                }
                 Deliberation deliberation = new Deliberation();
                 deliberation.setFiliere(req.getParameter("filiere"));
                 deliberation.setSession(req.getParameter("session"));
@@ -129,6 +149,15 @@ public class DeliberationServlet extends HttpServlet {
 
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession(false);
+        String role = (String) session.getAttribute(Constants.SESSION_ROLE);
+
+        // Only CHEF_DEPT can modify/toggle deliberations
+        if (!Constants.ROLE_CHEF.equals(role)) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+            return;
+        }
+
         try {
             String id = req.getParameter("id");
             Deliberation deliberation = deliberationDAO.findById(Long.parseLong(id));

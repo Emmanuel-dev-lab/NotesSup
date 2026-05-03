@@ -1,13 +1,15 @@
 package org.ict4d.notessup.servlets;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
+
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.ict4d.notessup.models.Note;
 import org.ict4d.notessup.models.Etudiant;
 import org.ict4d.notessup.models.Matiere;
+import org.ict4d.notessup.models.User;
 import org.ict4d.notessup.dao.NoteDAO;
 import org.ict4d.notessup.dao.EtudiantDAO;
 import org.ict4d.notessup.dao.MatiereDAO;
@@ -18,7 +20,6 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
 
-@WebServlet("/notes")
 public class NoteServlet extends HttpServlet {
     private final NoteDAO noteDAO = new NoteDAO();
     private final EtudiantDAO etudiantDAO = new EtudiantDAO();
@@ -28,27 +29,44 @@ public class NoteServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession(false);
+        String role = (String) session.getAttribute(Constants.SESSION_ROLE);
+
+        // CHEF_DEPT and ENSEIGNANT can view notes
+        if (!Constants.ROLE_CHEF.equals(role) && !Constants.ROLE_ENSEIGNANT.equals(role)) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+            return;
+        }
+
         String action = req.getParameter("action");
         String page = req.getParameter("page");
         String etudiantId = req.getParameter("etudiant");
         String matiereId = req.getParameter("matiere");
-        String session = req.getParameter("session");
+        String sessionParam = req.getParameter("session");
         String anneeAcademique = req.getParameter("annee");
 
         try {
             if ("grille".equals(action)) {
-                // Show grille de saisie des notes
+                // Show grille de saisie des notes (CHEF only)
+                if (!Constants.ROLE_CHEF.equals(role)) {
+                    resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+                    return;
+                }
                 List<Etudiant> etudiants = etudiantDAO.findAll(100, 0);
                 List<Matiere> matieres = matiereDAO.findAll(100, 0);
 
                 req.setAttribute("etudiants", etudiants);
                 req.setAttribute("matieres", matieres);
-                req.setAttribute("session", session);
+                req.setAttribute("session", sessionParam);
                 req.setAttribute("anneeAcademique", anneeAcademique);
                 req.getRequestDispatcher("/WEB-INF/views/notes/grille.jsp").forward(req, resp);
 
             } else if ("add".equals(action)) {
-                // Show add form
+                // Show add form (CHEF only)
+                if (!Constants.ROLE_CHEF.equals(role)) {
+                    resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+                    return;
+                }
                 List<Etudiant> etudiants = etudiantDAO.findAll(100, 0);
                 List<Matiere> matieres = matiereDAO.findAll(100, 0);
 
@@ -57,7 +75,11 @@ public class NoteServlet extends HttpServlet {
                 req.getRequestDispatcher("/WEB-INF/views/notes/form.jsp").forward(req, resp);
 
             } else if ("edit".equals(action)) {
-                // Show edit form
+                // Show edit form (CHEF only)
+                if (!Constants.ROLE_CHEF.equals(role)) {
+                    resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+                    return;
+                }
                 String id = req.getParameter("id");
                 Note note = noteDAO.findById(Long.parseLong(id));
                 List<Etudiant> etudiants = etudiantDAO.findAll(100, 0);
@@ -101,20 +123,37 @@ public class NoteServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession(false);
+        String role = (String) session.getAttribute(Constants.SESSION_ROLE);
+        User user = (User) session.getAttribute(Constants.SESSION_USER);
+
         try {
             String action = req.getParameter("action");
 
             if ("update".equals(action)) {
                 // Update existing note
+                // CHEF can always update, ENSEIGNANT can update only for their matieres
+                long matiereId = Long.parseLong(req.getParameter("matiere"));
+                if (Constants.ROLE_ENSEIGNANT.equals(role)) {
+                    Matiere matiere = matiereDAO.findById(matiereId);
+                    if (matiere == null || !matiere.getEnseignant().equals(user.getNom())) {
+                        resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+                        return;
+                    }
+                } else if (!Constants.ROLE_CHEF.equals(role)) {
+                    resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+                    return;
+                }
+
                 Note note = new Note();
                 note.setId(Long.parseLong(req.getParameter("id")));
                 note.setEtudiantId(Long.parseLong(req.getParameter("etudiant")));
-                note.setMatiereId(Long.parseLong(req.getParameter("matiere")));
+                note.setMatiereId(matiereId);
                 note.setNoteCC(new BigDecimal(req.getParameter("noteCC")));
                 note.setNoteExam(new BigDecimal(req.getParameter("noteExam")));
                 note.setSession(req.getParameter("session"));
                 note.setAnneeAcademique(req.getParameter("annee"));
-                note.setSaisiePar(req.getUserPrincipal() != null ? req.getUserPrincipal().getName() : "system");
+                note.setSaisiePar(user != null ? user.getLogin() : "system");
 
                 // Calculate noteFinale
                 BigDecimal noteFinale = noteService.calcNoteFinale(note.getNoteCC(), note.getNoteExam());
@@ -125,14 +164,27 @@ public class NoteServlet extends HttpServlet {
 
             } else {
                 // Create new note
+                // CHEF can always create, ENSEIGNANT can create only for their matieres
+                long matiereId = Long.parseLong(req.getParameter("matiere"));
+                if (Constants.ROLE_ENSEIGNANT.equals(role)) {
+                    Matiere matiere = matiereDAO.findById(matiereId);
+                    if (matiere == null || !matiere.getEnseignant().equals(user.getNom())) {
+                        resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+                        return;
+                    }
+                } else if (!Constants.ROLE_CHEF.equals(role)) {
+                    resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+                    return;
+                }
+
                 Note note = new Note();
                 note.setEtudiantId(Long.parseLong(req.getParameter("etudiant")));
-                note.setMatiereId(Long.parseLong(req.getParameter("matiere")));
+                note.setMatiereId(matiereId);
                 note.setNoteCC(new BigDecimal(req.getParameter("noteCC")));
                 note.setNoteExam(new BigDecimal(req.getParameter("noteExam")));
                 note.setSession(req.getParameter("session"));
                 note.setAnneeAcademique(req.getParameter("annee"));
-                note.setSaisiePar(req.getUserPrincipal() != null ? req.getUserPrincipal().getName() : "system");
+                note.setSaisiePar(user != null ? user.getLogin() : "system");
 
                 // Calculate noteFinale
                 BigDecimal noteFinale = noteService.calcNoteFinale(note.getNoteCC(), note.getNoteExam());
@@ -153,6 +205,15 @@ public class NoteServlet extends HttpServlet {
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession(false);
+        String role = (String) session.getAttribute(Constants.SESSION_ROLE);
+
+        // Only CHEF_DEPT can delete notes
+        if (!Constants.ROLE_CHEF.equals(role)) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+            return;
+        }
+
         try {
             String id = req.getParameter("id");
             noteDAO.delete(Long.parseLong(id));
