@@ -6,159 +6,363 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - NotesSup</title>
+    <title>Tableau de bord — NotesSup</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body>
-    <!-- Include Sidebar -->
     <jsp:include page="/WEB-INF/views/components/sidebar.jsp" />
 
-    <!-- Main Content -->
     <main class="main">
-        <!-- Page Header -->
-        <header class="page-header">
-            <h1>Dashboard</h1>
-            <p>Bienvenue dans NotesSup - Système de Gestion des Notes & Bulletins</p>
-        </header>
-
-        <!-- Page Content -->
         <div class="page-content">
             <c:choose>
+                <%-- ══ CHEF DE DÉPARTEMENT ══ --%>
                 <c:when test="${sessionScope.user.role == 'CHEF_DEPT'}">
-                    <!-- Chef Dept Dashboard -->
-                    <h2 style="margin-bottom: var(--space-8);">Vue d'ensemble</h2>
-
-                    <!-- KPI Cards -->
-                    <div class="grid-4">
-                        <div class="kpi-card">
-                            <div class="kpi-number">${totalEtudiants != null ? totalEtudiants : 0}</div>
-                            <div class="kpi-label">Étudiants</div>
+                    <div class="page-header">
+                        <div>
+                            <h1>Tableau de bord</h1>
+                            <p class="subtitle">Vue d'ensemble du département</p>
                         </div>
-
-                        <div class="kpi-card">
-                            <div class="kpi-number">${totalMatieres != null ? totalMatieres : 0}</div>
-                            <div class="kpi-label">Matières</div>
-                        </div>
-
-                        <div class="kpi-card">
-                            <div class="kpi-number">${totalNotes != null ? totalNotes : 0}</div>
-                            <div class="kpi-label">Notes Saisies</div>
-                        </div>
-
-                        <div class="kpi-card">
-                            <div class="kpi-number">${tauxReussite != null ? tauxReussite : 0}%</div>
-                            <div class="kpi-label">Taux Réussite</div>
-                            <div class="kpi-badge">Année Courante</div>
+                        <div class="page-header-actions">
+                            <a href="${pageContext.request.contextPath}/etudiants?action=add" class="btn btn-primary">
+                                + Ajouter étudiant
+                            </a>
                         </div>
                     </div>
 
-                    <!-- Actions rapides -->
-                    <div style="margin-top: var(--space-12);">
-                        <h3 style="margin-bottom: var(--space-6);">Actions rapides</h3>
+                    <%-- KPI Cards --%>
+                    <div class="grid-4" style="margin-bottom: 24px;">
+                        <div class="stat-card">
+                            <div class="stat-card-icon" style="background: oklch(0.56 0.16 252 / 0.12);">👥</div>
+                            <div>
+                                <div class="stat-card-value">${totalEtudiants != null ? totalEtudiants : 0}</div>
+                                <div class="stat-card-label">Étudiants inscrits</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-icon" style="background: oklch(0.58 0.14 160 / 0.12);">📚</div>
+                            <div>
+                                <div class="stat-card-value">${totalMatieres != null ? totalMatieres : 0}</div>
+                                <div class="stat-card-label">Matières</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-icon" style="background: oklch(0.72 0.16 72 / 0.12);">✏️</div>
+                            <div>
+                                <div class="stat-card-value">${totalNotes != null ? totalNotes : 0}</div>
+                                <div class="stat-card-label">Notes saisies</div>
+                                <c:if test="${tauxReussite != null}">
+                                    <div class="stat-card-sub" style="color: var(--accent-amber);">${tauxReussite}% de réussite</div>
+                                </c:if>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-icon" style="background: oklch(0.56 0.18 22 / 0.12);">🎓</div>
+                            <div>
+                                <div class="stat-card-value">${totalDeliberations != null ? totalDeliberations : 0}</div>
+                                <div class="stat-card-label">Délibérations</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <%-- 2-column content grid --%>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px;">
+                        <%-- Résultats by filière --%>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Résultats par filière</h3>
+                            </div>
+                            <c:choose>
+                                <c:when test="${statsFilieres != null && !statsFilieres.isEmpty()}">
+                                    <c:forEach var="stat" items="${statsFilieres}">
+                                        <div style="margin-bottom: 16px;">
+                                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                                <span style="font-size:13.5px; font-weight:600;">${stat.filiere}</span>
+                                                <span style="font-size:12.5px; color:var(--text-secondary);">${stat.nbEtudiants} étudiants</span>
+                                                <span style="font-family:var(--font-mono); font-weight:700; font-size:14px;
+                                                      color: ${stat.moyenne >= 10 ? 'var(--accent-green)' : 'var(--accent-red)'};">
+                                                    <fmt:formatNumber value="${stat.moyenne}" maxFractionDigits="2"/>/20
+                                                </span>
+                                            </div>
+                                            <div class="progress-bar-track">
+                                                <div class="progress-bar-fill"
+                                                     style="width: ${stat.tauxReussite}%;
+                                                            background: ${stat.tauxReussite >= 50 ? 'var(--accent-green)' : 'var(--accent-red)'};">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </c:forEach>
+                                </c:when>
+                                <c:otherwise>
+                                    <p style="color:var(--text-muted); font-size:13px; text-align:center; padding: 24px 0;">
+                                        Aucune donnée disponible
+                                    </p>
+                                </c:otherwise>
+                            </c:choose>
+                        </div>
+
+                        <%-- Right column --%>
+                        <div style="display:flex; flex-direction:column; gap:16px;">
+                            <%-- Alertes --%>
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3>⚠ Alertes</h3>
+                                </div>
+                                <c:choose>
+                                    <c:when test="${alertes != null && !alertes.isEmpty()}">
+                                        <c:forEach var="alerte" items="${alertes}">
+                                            <div style="display:flex; align-items:flex-start; gap:8px; margin-bottom:10px;">
+                                                <span style="color:var(--accent-red); margin-top:2px;">●</span>
+                                                <div>
+                                                    <div style="font-size:13px; font-weight:600;">${alerte.etudiantNom}</div>
+                                                    <div style="font-size:11.5px; color:var(--text-secondary);">${alerte.matiereNom}</div>
+                                                    <div style="font-size:12px; color:var(--accent-red); font-family:var(--font-mono); font-weight:700;">
+                                                        <fmt:formatNumber value="${alerte.note}" maxFractionDigits="2"/>/20
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </c:forEach>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <p style="color:var(--text-muted); font-size:12.5px;">Aucun étudiant en difficulté.</p>
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
+
+                            <%-- État délibérations --%>
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3>Délibérations</h3>
+                                </div>
+                                <c:choose>
+                                    <c:when test="${deliberations != null && !deliberations.isEmpty()}">
+                                        <c:forEach var="delib" items="${deliberations}">
+                                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                                <span style="font-size:13px;">${delib.filiere}</span>
+                                                <c:choose>
+                                                    <c:when test="${delib.publiee}">
+                                                        <span class="badge badge-success">Publiée</span>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="badge badge-warning">En attente</span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </div>
+                                        </c:forEach>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <p style="color:var(--text-muted); font-size:12.5px;">Aucune délibération.</p>
+                                    </c:otherwise>
+                                </c:choose>
+                                <a href="${pageContext.request.contextPath}/deliberations"
+                                   class="btn btn-ghost btn-sm" style="margin-top:12px; width:100%;">
+                                    Voir tout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <%-- Dernières notes saisies --%>
+                    <c:if test="${dernieresNotes != null && !dernieresNotes.isEmpty()}">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Dernières notes saisies</h3>
+                            </div>
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Étudiant</th>
+                                            <th>Matière</th>
+                                            <th>CC</th>
+                                            <th>Examen</th>
+                                            <th>Finale</th>
+                                            <th>Mention</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <c:forEach var="note" items="${dernieresNotes}">
+                                            <tr>
+                                                <td class="td-bold">${note.etudiantNom}</td>
+                                                <td>${note.matiereNom}</td>
+                                                <td class="td-mono"><fmt:formatNumber value="${note.noteCC}" maxFractionDigits="2"/></td>
+                                                <td class="td-mono"><fmt:formatNumber value="${note.noteExam}" maxFractionDigits="2"/></td>
+                                                <td class="td-mono" style="font-weight:700;
+                                                    color: ${note.noteFinale >= 16 ? '#059669' :
+                                                             note.noteFinale >= 14 ? '#0891b2' :
+                                                             note.noteFinale >= 12 ? '#7c3aed' :
+                                                             note.noteFinale >= 10 ? '#d97706' : '#dc2626'};">
+                                                    <fmt:formatNumber value="${note.noteFinale}" maxFractionDigits="2"/>
+                                                </td>
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${note.noteFinale >= 16}"><span class="badge badge-success">Très Bien</span></c:when>
+                                                        <c:when test="${note.noteFinale >= 14}"><span class="badge badge-info">Bien</span></c:when>
+                                                        <c:when test="${note.noteFinale >= 12}"><span class="badge badge-purple">Assez Bien</span></c:when>
+                                                        <c:when test="${note.noteFinale >= 10}"><span class="badge badge-warning">Passable</span></c:when>
+                                                        <c:otherwise><span class="badge badge-danger">Ajourné</span></c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                            </tr>
+                                        </c:forEach>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </c:if>
+
+                    <%-- Fallback quick actions if no data --%>
+                    <c:if test="${dernieresNotes == null || dernieresNotes.isEmpty()}">
                         <div class="grid-3">
-                            <div class="card">
-                                <h3>Ajouter un étudiant</h3>
-                                <p style="color: var(--color-text-secondary); margin: var(--space-3) 0;">
-                                    Enregistrer un nouvel étudiant dans le système
-                                </p>
-                                <div class="card-footer">
-                                    <a href="${pageContext.request.contextPath}/etudiants?action=add" class="btn btn-primary">
-                                        Ajouter
-                                    </a>
-                                </div>
-                            </div>
-
-                            <div class="card">
-                                <h3>Saisir des notes</h3>
-                                <p style="color: var(--color-text-secondary); margin: var(--space-3) 0;">
-                                    Enregistrer ou modifier les notes des étudiants
-                                </p>
-                                <div class="card-footer">
-                                    <a href="${pageContext.request.contextPath}/notes" class="btn btn-primary">
-                                        Aller aux notes
-                                    </a>
-                                </div>
-                            </div>
-
-                            <div class="card">
-                                <h3>Publier délibérations</h3>
-                                <p style="color: var(--color-text-secondary); margin: var(--space-3) 0;">
-                                    Publier les résultats des délibérations
-                                </p>
-                                <div class="card-footer">
-                                    <a href="${pageContext.request.contextPath}/deliberations" class="btn btn-primary">
-                                        Gérer
-                                    </a>
-                                </div>
-                            </div>
+                            <a href="${pageContext.request.contextPath}/etudiants?action=add" class="card" style="text-decoration:none; display:block;">
+                                <div style="font-size:28px; margin-bottom:12px;">👤</div>
+                                <div style="font-size:14px; font-weight:700; margin-bottom:6px;">Ajouter un étudiant</div>
+                                <div style="font-size:12.5px; color:var(--text-secondary);">Enregistrer un nouvel étudiant</div>
+                            </a>
+                            <a href="${pageContext.request.contextPath}/notes" class="card" style="text-decoration:none; display:block;">
+                                <div style="font-size:28px; margin-bottom:12px;">✏️</div>
+                                <div style="font-size:14px; font-weight:700; margin-bottom:6px;">Saisir des notes</div>
+                                <div style="font-size:12.5px; color:var(--text-secondary);">Enregistrer les notes</div>
+                            </a>
+                            <a href="${pageContext.request.contextPath}/deliberations" class="card" style="text-decoration:none; display:block;">
+                                <div style="font-size:28px; margin-bottom:12px;">🎓</div>
+                                <div style="font-size:14px; font-weight:700; margin-bottom:6px;">Délibérations</div>
+                                <div style="font-size:12.5px; color:var(--text-secondary);">Publier les résultats</div>
+                            </a>
                         </div>
-                    </div>
-
+                    </c:if>
                 </c:when>
 
+                <%-- ══ ENSEIGNANT ══ --%>
                 <c:when test="${sessionScope.user.role == 'ENSEIGNANT'}">
-                    <!-- Enseignant Dashboard -->
-                    <h2 style="margin-bottom: var(--space-8);">Mes statistiques</h2>
-
-                    <div class="grid-3">
-                        <div class="kpi-card">
-                            <div class="kpi-number">${mesEtudiants != null ? mesEtudiants : 0}</div>
-                            <div class="kpi-label">Mes Étudiants</div>
+                    <div class="page-header">
+                        <div>
+                            <h1>Tableau de bord</h1>
+                            <p class="subtitle">Bienvenue, ${sessionScope.user.nom}</p>
                         </div>
-
-                        <div class="kpi-card">
-                            <div class="kpi-number">${mesMatieres != null ? mesMatieres : 0}</div>
-                            <div class="kpi-label">Mes Matières</div>
-                        </div>
-
-                        <div class="kpi-card">
-                            <div class="kpi-number">${notesASaisir != null ? notesASaisir : 0}</div>
-                            <div class="kpi-label">Notes à Saisir</div>
-                        </div>
+                        <a href="${pageContext.request.contextPath}/notes" class="btn btn-primary">Saisir des notes</a>
                     </div>
 
-                    <div style="margin-top: var(--space-12);">
-                        <a href="${pageContext.request.contextPath}/notes" class="btn btn-primary">
-                            Gérer mes notes
-                        </a>
+                    <div class="grid-3" style="margin-bottom: 24px;">
+                        <div class="stat-card">
+                            <div class="stat-card-icon" style="background: oklch(0.56 0.16 252 / 0.12);">👥</div>
+                            <div>
+                                <div class="stat-card-value">${mesEtudiants != null ? mesEtudiants : 0}</div>
+                                <div class="stat-card-label">Mes étudiants</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-icon" style="background: oklch(0.58 0.14 160 / 0.12);">📚</div>
+                            <div>
+                                <div class="stat-card-value">${mesMatieres != null ? mesMatieres : 0}</div>
+                                <div class="stat-card-label">Mes matières</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-icon" style="background: oklch(0.72 0.16 72 / 0.12);">✏️</div>
+                            <div>
+                                <div class="stat-card-value">${notesASaisir != null ? notesASaisir : 0}</div>
+                                <div class="stat-card-label">Notes à saisir</div>
+                            </div>
+                        </div>
                     </div>
-
                 </c:when>
 
+                <%-- ══ ÉTUDIANT ══ --%>
                 <c:when test="${sessionScope.user.role == 'ETUDIANT'}">
-                    <!-- Étudiant Dashboard -->
-                    <h2 style="margin-bottom: var(--space-8);">Mon profil académique</h2>
+                    <div class="page-header">
+                        <div>
+                            <h1>Mon tableau de bord</h1>
+                            <p class="subtitle">Bienvenue, ${sessionScope.user.nom}</p>
+                        </div>
+                        <a href="${pageContext.request.contextPath}/bulletins" class="btn btn-ghost">Mon bulletin</a>
+                    </div>
 
-                    <div class="grid-2">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3>Informations</h3>
-                            </div>
-                            <div class="card-body">
-                                <p><strong>Matricule:</strong> ${studentInfo.matricule}</p>
-                                <p><strong>Filière:</strong> ${studentInfo.filiere}</p>
-                                <p><strong>Année:</strong> ${studentInfo.annee}</p>
+                    <div class="grid-3" style="margin-bottom: 24px;">
+                        <div class="stat-card">
+                            <div class="stat-card-icon" style="background: oklch(0.56 0.16 252 / 0.12);">📊</div>
+                            <div>
+                                <div class="stat-card-value" style="font-size:36px; font-weight:800;
+                                     color: ${moyenneGenerale != null && moyenneGenerale >= 16 ? '#059669' :
+                                              moyenneGenerale != null && moyenneGenerale >= 14 ? '#0891b2' :
+                                              moyenneGenerale != null && moyenneGenerale >= 12 ? '#7c3aed' :
+                                              moyenneGenerale != null && moyenneGenerale >= 10 ? '#d97706' : '#dc2626'};">
+                                    ${moyenneGenerale != null ? moyenneGenerale : '—'}
+                                </div>
+                                <div class="stat-card-label">Moyenne générale</div>
+                                <c:if test="${mention != null}">
+                                    <div class="stat-card-sub" style="color:var(--accent-blue); margin-top:4px;">
+                                        <span class="badge badge-info">${mention}</span>
+                                    </div>
+                                </c:if>
                             </div>
                         </div>
-
-                        <div class="card">
-                            <div class="card-header">
-                                <h3>Statistiques</h3>
+                        <div class="stat-card">
+                            <div class="stat-card-icon" style="background: oklch(0.58 0.14 160 / 0.12);">✅</div>
+                            <div>
+                                <div class="stat-card-value">${matieresValidees != null ? matieresValidees : 0}</div>
+                                <div class="stat-card-label">Matières validées</div>
+                                <c:if test="${totalMatieres != null}">
+                                    <div class="stat-card-sub" style="color:var(--text-secondary);">sur ${totalMatieres}</div>
+                                </c:if>
                             </div>
-                            <div class="card-body">
-                                <p><strong>Moyenne générale:</strong> <span class="numeric">${moyenneGenerale != null ? moyenneGenerale : 'N/A'}</span></p>
-                                <p><strong>Notes saisies:</strong> ${notesCount != null ? notesCount : 0}</p>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-icon" style="background: oklch(0.72 0.16 72 / 0.12);">🏆</div>
+                            <div>
+                                <div class="stat-card-value">${creditsTotal != null ? creditsTotal : 0}</div>
+                                <div class="stat-card-label">Crédits obtenus</div>
                             </div>
                         </div>
                     </div>
 
-                    <div style="margin-top: var(--space-12);">
-                        <h3 style="margin-bottom: var(--space-6);">Actions</h3>
-                        <a href="${pageContext.request.contextPath}/bulletins" class="btn btn-primary">
-                            Voir mon bulletin
-                        </a>
-                    </div>
-
+                    <%-- Notes table --%>
+                    <c:if test="${mesNotes != null && !mesNotes.isEmpty()}">
+                        <div class="card">
+                            <div class="card-header"><h3>Mes notes</h3></div>
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Code</th>
+                                            <th>Matière</th>
+                                            <th>Coeff.</th>
+                                            <th>CC</th>
+                                            <th>Examen</th>
+                                            <th>Finale</th>
+                                            <th>Mention</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <c:forEach var="note" items="${mesNotes}">
+                                            <tr>
+                                                <td class="td-mono" style="color:var(--accent-blue);">${note.matiereCode}</td>
+                                                <td>${note.matiereNom}</td>
+                                                <td class="td-mono">${note.coefficient}</td>
+                                                <td class="td-mono"><fmt:formatNumber value="${note.noteCC}" maxFractionDigits="2"/></td>
+                                                <td class="td-mono"><fmt:formatNumber value="${note.noteExam}" maxFractionDigits="2"/></td>
+                                                <td class="td-mono" style="font-weight:700;
+                                                    color: ${note.noteFinale >= 16 ? '#059669' :
+                                                             note.noteFinale >= 14 ? '#0891b2' :
+                                                             note.noteFinale >= 12 ? '#7c3aed' :
+                                                             note.noteFinale >= 10 ? '#d97706' : '#dc2626'};">
+                                                    <fmt:formatNumber value="${note.noteFinale}" maxFractionDigits="2"/>
+                                                </td>
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${note.noteFinale >= 16}"><span class="badge badge-success">Très Bien</span></c:when>
+                                                        <c:when test="${note.noteFinale >= 14}"><span class="badge badge-info">Bien</span></c:when>
+                                                        <c:when test="${note.noteFinale >= 12}"><span class="badge badge-purple">Assez Bien</span></c:when>
+                                                        <c:when test="${note.noteFinale >= 10}"><span class="badge badge-warning">Passable</span></c:when>
+                                                        <c:otherwise><span class="badge badge-danger">Ajourné</span></c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                            </tr>
+                                        </c:forEach>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </c:if>
                 </c:when>
             </c:choose>
         </div>

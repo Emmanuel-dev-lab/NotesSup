@@ -5,76 +5,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matières - NotesSup</title>
+    <title>Matières — NotesSup</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <style>
+        .matieres-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .matiere-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-card);
+            overflow: hidden;
+        }
+
+        .matiere-card-body {
+            padding: 18px 20px;
+        }
+
+        .matiere-code-chip {
+            display: inline-block;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 600;
+            background: oklch(0.95 0.05 252);
+            color: var(--accent-blue);
+            padding: 3px 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .matiere-intitule {
+            font-size: 14.5px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .matiere-enseignant {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+        }
+
+        .matiere-card-footer {
+            padding: 14px 20px;
+            border-top: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .coeff-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .coeff-number {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--accent-blue);
+            font-family: var(--font-mono);
+        }
+
+        .coeff-bar {
+            width: 60px;
+        }
+    </style>
 </head>
 <body>
-    <!-- Include Sidebar -->
     <jsp:include page="/WEB-INF/views/components/sidebar.jsp" />
 
-    <!-- Main Content -->
     <main class="main">
-        <!-- Page Header -->
-        <header class="page-header">
-            <div class="flex-between">
+        <div class="page-content">
+            <div class="page-header">
                 <div>
                     <h1>Matières</h1>
-                    <p>Gestion des matières par filière</p>
+                    <p class="subtitle">Gestion des matières par filière</p>
                 </div>
-                <a href="${pageContext.request.contextPath}/matieres?action=add" class="btn btn-primary">
-                    + Ajouter matière
-                </a>
+                <div class="page-header-actions">
+                    <c:if test="${sessionScope.user.role == 'CHEF_DEPT'}">
+                        <a href="${pageContext.request.contextPath}/matieres?action=add" class="btn btn-primary">
+                            + Ajouter matière
+                        </a>
+                    </c:if>
+                </div>
             </div>
-        </header>
 
-        <!-- Page Content -->
-        <div class="page-content">
-            <c:if test="${error != null}">
-                <div class="alert alert-danger" style="margin-bottom: var(--space-8);">
-                    ${error}
+            <c:if test="${error != null}"><div class="alert alert-danger">${error}</div></c:if>
+            <c:if test="${success != null}"><div class="alert alert-success">${success}</div></c:if>
+
+            <!-- Filtres -->
+            <form method="GET" action="${pageContext.request.contextPath}/matieres">
+                <div class="toolbar" style="margin-bottom: 20px;">
+                    <div class="search-bar">
+                        <span class="search-bar-icon">⌕</span>
+                        <input type="text" name="search"
+                               placeholder="Rechercher une matière..."
+                               value="${search != null ? search : ''}">
+                    </div>
+                    <select name="filiere">
+                        <option value="">Toutes les filières</option>
+                        <c:forEach var="f" items="${filieres}">
+                            <option value="${f}" ${selectedFiliere == f ? 'selected' : ''}>${f}</option>
+                        </c:forEach>
+                    </select>
+                    <select name="semestre">
+                        <option value="">Tous les semestres</option>
+                        <option value="1" ${selectedSemestre == '1' ? 'selected' : ''}>Semestre 1</option>
+                        <option value="2" ${selectedSemestre == '2' ? 'selected' : ''}>Semestre 2</option>
+                    </select>
+                    <button type="submit" class="btn btn-ghost">Filtrer</button>
                 </div>
-            </c:if>
+            </form>
 
-            <c:if test="${success != null}">
-                <div class="alert alert-success" style="margin-bottom: var(--space-8);">
-                    ${success}
-                </div>
-            </c:if>
-
-            <!-- Matieres Cards by Filière -->
-            <div class="grid-3">
-                <c:choose>
-                    <c:when test="${matieres != null && matieres.size() > 0}">
-                        <c:forEach var="matiere" items="${matieres}">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h3>${matiere.intitule}</h3>
+            <!-- Matières Cards -->
+            <c:choose>
+                <c:when test="${matieres != null && matieres.size() > 0}">
+                    <div class="matieres-grid">
+                        <c:forEach var="m" items="${matieres}">
+                            <div class="matiere-card">
+                                <div class="matiere-card-body">
+                                    <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:10px;">
+                                        <span class="matiere-code-chip">${m.code}</span>
+                                        <span class="badge badge-neutral">S${m.semestre}</span>
+                                    </div>
+                                    <div class="matiere-intitule">${m.intitule}</div>
+                                    <div class="matiere-enseignant">
+                                        ${m.enseignant != null ? m.enseignant : 'Enseignant non assigné'}
+                                    </div>
+                                    <span class="badge badge-info">${m.filiere}</span>
                                 </div>
-                                <div class="card-body">
-                                    <p><strong>Code:</strong> ${matiere.code}</p>
-                                    <p><strong>Coefficient:</strong> <span class="badge badge-primary">${matiere.coefficient}</span></p>
-                                    <p><strong>Enseignant:</strong> ${matiere.enseignant != null ? matiere.enseignant : 'Non assigné'}</p>
-                                    <p><strong>Semestre:</strong> ${matiere.semestre}</p>
-                                    <p><strong>Filière:</strong> ${matiere.filiere}</p>
-                                </div>
-                                <div class="card-footer">
-                                    <a href="${pageContext.request.contextPath}/matieres?action=edit&id=${matiere.id}" class="btn btn-sm btn-ghost">
-                                        Éditer
-                                    </a>
-                                    <a href="${pageContext.request.contextPath}/matieres?action=delete&id=${matiere.id}" class="btn btn-sm btn-danger" onclick="return confirm('Êtes-vous sûr?');">
-                                        Supprimer
-                                    </a>
+                                <div class="matiere-card-footer">
+                                    <div class="coeff-section">
+                                        <div class="coeff-number">${m.coefficient}</div>
+                                        <div class="coeff-bar">
+                                            <div class="progress-bar-track">
+                                                <div class="progress-bar-fill"
+                                                     style="width: ${m.coefficient * 10}%; background: var(--accent-blue);"></div>
+                                            </div>
+                                            <div style="font-size:10px; color:var(--text-muted); margin-top:3px;">coeff /10</div>
+                                        </div>
+                                    </div>
+                                    <c:if test="${sessionScope.user.role == 'CHEF_DEPT'}">
+                                        <div style="display:flex; gap:6px;">
+                                            <a href="${pageContext.request.contextPath}/matieres?action=edit&id=${m.id}"
+                                               class="btn btn-sm btn-ghost">✎</a>
+                                            <a href="${pageContext.request.contextPath}/matieres?action=delete&id=${m.id}"
+                                               class="btn btn-sm btn-danger"
+                                               onclick="return confirm('Supprimer ${m.intitule} ?');">✕</a>
+                                        </div>
+                                    </c:if>
                                 </div>
                             </div>
                         </c:forEach>
-                    </c:when>
-                    <c:otherwise>
-                        <div style="grid-column: 1 / -1; text-align: center; padding: var(--space-12); color: var(--color-text-secondary);">
-                            <p>Aucune matière enregistrée</p>
-                        </div>
-                    </c:otherwise>
-                </c:choose>
-            </div>
+                    </div>
+                </c:when>
+                <c:otherwise>
+                    <div class="card" style="text-align:center; padding:48px;">
+                        <div style="font-size:32px; margin-bottom:12px;">📚</div>
+                        <p style="color:var(--text-secondary);">Aucune matière enregistrée</p>
+                        <c:if test="${sessionScope.user.role == 'CHEF_DEPT'}">
+                            <a href="${pageContext.request.contextPath}/matieres?action=add"
+                               class="btn btn-primary" style="margin-top:16px;">Ajouter une matière</a>
+                        </c:if>
+                    </div>
+                </c:otherwise>
+            </c:choose>
         </div>
     </main>
 </body>

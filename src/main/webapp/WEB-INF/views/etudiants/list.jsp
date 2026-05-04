@@ -6,94 +6,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Étudiants - NotesSup</title>
+    <title>Étudiants — NotesSup</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body>
-    <!-- Include Sidebar -->
     <jsp:include page="/WEB-INF/views/components/sidebar.jsp" />
 
-    <!-- Main Content -->
     <main class="main">
-        <!-- Page Header -->
-        <header class="page-header">
-            <div class="flex-between">
+        <div class="page-content">
+            <div class="page-header">
                 <div>
                     <h1>Étudiants</h1>
-                    <p>Gestion des informations des étudiants</p>
+                    <p class="subtitle">Gestion des informations étudiants</p>
                 </div>
-                <a href="${pageContext.request.contextPath}/etudiants?action=add" class="btn btn-primary">
-                    + Ajouter étudiant
-                </a>
-            </div>
-        </header>
-
-        <!-- Page Content -->
-        <div class="page-content">
-            <!-- Search Form -->
-            <div class="card" style="margin-bottom: var(--space-8);">
-                <form method="GET" action="${pageContext.request.contextPath}/etudiants" class="flex gap-4">
-                    <div style="flex: 1;">
-                        <input
-                            type="text"
-                            name="search"
-                            placeholder="Rechercher par matricule ou nom..."
-                            value="${search != null ? search : ''}"
-                            style="width: 100%; padding: var(--space-3) var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md);"
-                        >
-                    </div>
-                    <button type="submit" class="btn btn-secondary">
-                        Rechercher
-                    </button>
-                </form>
+                <div class="page-header-actions">
+                    <a href="${pageContext.request.contextPath}/etudiants?export=csv" class="btn btn-ghost">
+                        ↓ Export CSV
+                    </a>
+                    <c:if test="${sessionScope.user.role == 'CHEF_DEPT'}">
+                        <a href="${pageContext.request.contextPath}/etudiants?action=add" class="btn btn-primary">
+                            + Ajouter
+                        </a>
+                    </c:if>
+                </div>
             </div>
 
             <c:if test="${error != null}">
-                <div class="alert alert-danger" style="margin-bottom: var(--space-8);">
-                    ${error}
-                </div>
+                <div class="alert alert-danger">${error}</div>
+            </c:if>
+            <c:if test="${success != null}">
+                <div class="alert alert-success">${success}</div>
             </c:if>
 
+            <!-- Toolbar -->
+            <form method="GET" action="${pageContext.request.contextPath}/etudiants">
+                <div class="toolbar">
+                    <div class="search-bar">
+                        <span class="search-bar-icon">⌕</span>
+                        <input type="text" name="search"
+                               placeholder="Rechercher par matricule ou nom..."
+                               value="${search != null ? search : ''}">
+                    </div>
+                    <select name="filiere">
+                        <option value="">Toutes les filières</option>
+                        <c:forEach var="f" items="${filieres}">
+                            <option value="${f}" ${selectedFiliere == f ? 'selected' : ''}>${f}</option>
+                        </c:forEach>
+                    </select>
+                    <button type="submit" class="btn btn-ghost">Rechercher</button>
+                </div>
+            </form>
+
             <!-- Table -->
-            <div class="card">
+            <div class="card" style="padding: 0; overflow: hidden;">
                 <div class="table-container">
                     <table>
                         <thead>
                             <tr>
                                 <th>Matricule</th>
-                                <th>Nom</th>
-                                <th>Prénom</th>
+                                <th>Nom &amp; Prénom</th>
                                 <th>Filière</th>
                                 <th>Année</th>
                                 <th>Téléphone</th>
-                                <th style="text-align: center;">Actions</th>
+                                <c:if test="${sessionScope.user.role == 'CHEF_DEPT'}">
+                                    <th style="width:100px;"></th>
+                                </c:if>
                             </tr>
                         </thead>
                         <tbody>
                             <c:choose>
                                 <c:when test="${etudiants != null && etudiants.size() > 0}">
-                                    <c:forEach var="etudiant" items="${etudiants}">
+                                    <c:forEach var="e" items="${etudiants}">
                                         <tr>
-                                            <td class="numeric">${etudiant.matricule}</td>
-                                            <td>${etudiant.nom}</td>
-                                            <td>${etudiant.prenom}</td>
-                                            <td>${etudiant.filiere}</td>
-                                            <td class="numeric">${etudiant.annee}</td>
-                                            <td>${etudiant.telephone != null ? etudiant.telephone : '-'}</td>
-                                            <td style="text-align: center;">
-                                                <a href="${pageContext.request.contextPath}/etudiants?action=edit&id=${etudiant.id}" class="btn btn-sm btn-ghost">
-                                                    Éditer
-                                                </a>
-                                                <a href="${pageContext.request.contextPath}/etudiants?action=delete&id=${etudiant.id}" class="btn btn-sm btn-danger" onclick="return confirm('Êtes-vous sûr?');">
-                                                    Supprimer
-                                                </a>
-                                            </td>
+                                            <td class="td-mono" style="color:var(--accent-blue); font-weight:500;">${e.matricule}</td>
+                                            <td class="td-bold">${e.nom} ${e.prenom}</td>
+                                            <td><span class="badge badge-info">${e.filiere}</span></td>
+                                            <td class="td-mono">L${e.annee}</td>
+                                            <td class="td-mono">${e.telephone != null ? e.telephone : '—'}</td>
+                                            <c:if test="${sessionScope.user.role == 'CHEF_DEPT'}">
+                                                <td>
+                                                    <div style="display:flex; gap:6px;">
+                                                        <a href="${pageContext.request.contextPath}/etudiants?action=edit&id=${e.id}"
+                                                           class="btn btn-sm btn-ghost" title="Modifier">✎</a>
+                                                        <a href="${pageContext.request.contextPath}/etudiants?action=delete&id=${e.id}"
+                                                           class="btn btn-sm btn-danger"
+                                                           title="Supprimer"
+                                                           onclick="return confirm('Supprimer ${e.prenom} ${e.nom} ?');">✕</a>
+                                                    </div>
+                                                </td>
+                                            </c:if>
                                         </tr>
                                     </c:forEach>
                                 </c:when>
                                 <c:otherwise>
                                     <tr>
-                                        <td colspan="7" style="text-align: center; padding: var(--space-12); color: var(--color-text-secondary);">
+                                        <td colspan="6" style="text-align:center; padding:40px; color:var(--text-muted);">
                                             Aucun étudiant trouvé
                                         </td>
                                     </tr>
@@ -105,15 +112,28 @@
 
                 <!-- Pagination -->
                 <c:if test="${currentPage != null}">
-                    <div class="pagination">
-                        <c:if test="${currentPage > 1}">
-                            <a href="${pageContext.request.contextPath}/etudiants?page=1">Première</a>
-                            <a href="${pageContext.request.contextPath}/etudiants?page=${currentPage - 1}">Précédent</a>
-                        </c:if>
-
-                        <span class="active">${currentPage}</span>
-
-                        <a href="${pageContext.request.contextPath}/etudiants?page=${currentPage + 1}">Suivant</a>
+                    <div style="padding: 14px 20px; border-top: 1px solid var(--border-light);">
+                        <div class="pagination">
+                            <span class="pagination-info">
+                                ${(currentPage-1)*pageSize+1}–${currentPage*pageSize} sur ${totalCount}
+                            </span>
+                            <c:if test="${currentPage > 1}">
+                                <a href="${pageContext.request.contextPath}/etudiants?page=${currentPage-1}&search=${search}">←</a>
+                            </c:if>
+                            <c:forEach begin="1" end="${totalPages}" var="p">
+                                <c:choose>
+                                    <c:when test="${p == currentPage}">
+                                        <span class="active">${p}</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <a href="${pageContext.request.contextPath}/etudiants?page=${p}&search=${search}">${p}</a>
+                                    </c:otherwise>
+                                </c:choose>
+                            </c:forEach>
+                            <c:if test="${currentPage < totalPages}">
+                                <a href="${pageContext.request.contextPath}/etudiants?page=${currentPage+1}&search=${search}">→</a>
+                            </c:if>
+                        </div>
                     </div>
                 </c:if>
             </div>

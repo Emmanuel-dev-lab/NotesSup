@@ -14,17 +14,18 @@
 
     <!-- Main Content -->
     <main class="main">
-        <!-- Page Header -->
-        <header class="page-header">
-            <div>
-                <h1>${matiere != null ? 'Éditer matière' : 'Ajouter matière'}</h1>
-                <p>${matiere != null ? matiere.intitule : 'Enregistrer une nouvelle matière'}</p>
-            </div>
-        </header>
-
-        <!-- Page Content -->
         <div class="page-content">
-            <div class="card" style="max-width: 600px;">
+            <div class="page-header">
+                <div>
+                    <h1>${matiere != null ? 'Modifier la matière' : 'Ajouter une matière'}</h1>
+                    <p class="subtitle">${matiere != null ? matiere.intitule : 'Enregistrer une nouvelle matière'}</p>
+                </div>
+                <div class="page-header-actions">
+                    <a href="${pageContext.request.contextPath}/matieres" class="btn btn-ghost">← Retour</a>
+                </div>
+            </div>
+
+            <div class="card" style="max-width: 620px;">
                 <c:if test="${error != null}">
                     <div class="alert alert-danger" style="margin-bottom: var(--space-6);">
                         ${error}
@@ -60,7 +61,7 @@
                         >
                     </div>
 
-                    <div class="form-inline">
+                    <div class="form-grid">
                         <div class="form-group">
                             <label for="coefficient">Coefficient *</label>
                             <input
@@ -114,12 +115,10 @@
                         >
                     </div>
 
-                    <div class="card-footer">
-                        <a href="${pageContext.request.contextPath}/matieres" class="btn btn-secondary">
-                            Annuler
-                        </a>
+                    <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px;">
+                        <a href="${pageContext.request.contextPath}/matieres" class="btn btn-ghost">Annuler</a>
                         <button type="submit" class="btn btn-primary">
-                            ${matiere != null ? 'Mettre à jour' : 'Créer'}
+                            ${matiere != null ? 'Mettre à jour' : 'Créer la matière'}
                         </button>
                     </div>
                 </form>

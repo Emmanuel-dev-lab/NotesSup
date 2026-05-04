@@ -15,17 +15,18 @@
 
     <!-- Main Content -->
     <main class="main">
-        <!-- Page Header -->
-        <header class="page-header">
-            <div>
-                <h1>${note != null ? 'Éditer note' : 'Ajouter note'}</h1>
-                <p>Saisir les notes de contrôle et d'examen</p>
-            </div>
-        </header>
-
-        <!-- Page Content -->
         <div class="page-content">
-            <div class="card" style="max-width: 600px;">
+            <div class="page-header">
+                <div>
+                    <h1>${note != null ? 'Modifier la note' : 'Ajouter une note'}</h1>
+                    <p class="subtitle">Saisir les notes de contrôle et d'examen</p>
+                </div>
+                <div class="page-header-actions">
+                    <a href="${pageContext.request.contextPath}/notes" class="btn btn-ghost">← Retour</a>
+                </div>
+            </div>
+
+            <div class="card" style="max-width: 620px;">
                 <c:if test="${error != null}">
                     <div class="alert alert-danger" style="margin-bottom: var(--space-6);">
                         ${error}
@@ -62,7 +63,7 @@
                         </select>
                     </div>
 
-                    <div class="form-inline">
+                    <div class="form-grid">
                         <div class="form-group">
                             <label for="noteCC">Note CC (0-20) *</label>
                             <input
@@ -123,12 +124,10 @@
                         </div>
                     </c:if>
 
-                    <div class="card-footer">
-                        <a href="${pageContext.request.contextPath}/notes" class="btn btn-secondary">
-                            Annuler
-                        </a>
+                    <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px;">
+                        <a href="${pageContext.request.contextPath}/notes" class="btn btn-ghost">Annuler</a>
                         <button type="submit" class="btn btn-primary">
-                            ${note != null ? 'Mettre à jour' : 'Créer'}
+                            ${note != null ? 'Mettre à jour' : 'Enregistrer la note'}
                         </button>
                     </div>
                 </form>

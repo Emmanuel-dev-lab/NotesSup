@@ -12,18 +12,18 @@
     <jsp:include page="/WEB-INF/views/components/sidebar.jsp" />
 
     <main class="main">
-        <header class="page-header">
-            <div>
-                <h1>${user != null ? 'Modifier un utilisateur' : 'Ajouter un utilisateur'}</h1>
-                <p>Veuillez remplir les informations du compte</p>
-            </div>
-            <div>
-                <a href="${pageContext.request.contextPath}/users" class="btn btn-ghost">← Retour</a>
-            </div>
-        </header>
-
         <div class="page-content">
-            <div class="card" style="max-width: 600px;">
+            <div class="page-header">
+                <div>
+                    <h1>${user != null ? 'Modifier un utilisateur' : 'Ajouter un utilisateur'}</h1>
+                    <p class="subtitle">Veuillez remplir les informations du compte</p>
+                </div>
+                <div class="page-header-actions">
+                    <a href="${pageContext.request.contextPath}/users" class="btn btn-ghost">← Retour</a>
+                </div>
+            </div>
+
+            <div class="card" style="max-width: 620px;">
                 <form action="${pageContext.request.contextPath}/users" method="POST" class="auth-form" style="margin: 0; padding: 0; background: none; box-shadow: none;">
                     
                     <input type="hidden" name="action" value="${user != null ? 'update' : 'insert'}">
@@ -60,8 +60,8 @@
                         <input type="text" id="filiere" name="filiere" class="form-control" value="${user != null ? user.filiere : ''}">
                     </div>
 
-                    <div class="flex gap-4" style="justify-content: flex-end;">
-                        <a href="${pageContext.request.contextPath}/users" class="btn btn-secondary">Annuler</a>
+                    <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px;">
+                        <a href="${pageContext.request.contextPath}/users" class="btn btn-ghost">Annuler</a>
                         <button type="submit" class="btn btn-primary">Enregistrer</button>
                     </div>
                 </form>

@@ -6,57 +6,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notes - NotesSup</title>
+    <title>Saisie des notes — NotesSup</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body>
-    <!-- Include Sidebar -->
     <jsp:include page="/WEB-INF/views/components/sidebar.jsp" />
 
-    <!-- Main Content -->
     <main class="main">
-        <!-- Page Header -->
-        <header class="page-header">
-            <div class="flex-between">
-                <div>
-                    <h1>Notes</h1>
-                    <p>Gestion des notes des étudiants</p>
-                </div>
-                <a href="${pageContext.request.contextPath}/notes?action=add" class="btn btn-primary">
-                    + Ajouter note
-                </a>
-            </div>
-        </header>
-
-        <!-- Page Content -->
         <div class="page-content">
-            <c:if test="${error != null}">
-                <div class="alert alert-danger" style="margin-bottom: var(--space-8);">
-                    ${error}
+            <div class="page-header">
+                <div>
+                    <h1>Saisie des notes</h1>
+                    <p class="subtitle">Gestion des notes des étudiants</p>
                 </div>
-            </c:if>
-
-            <!-- Filters -->
-            <div class="card" style="margin-bottom: var(--space-8);">
-                <form method="GET" action="${pageContext.request.contextPath}/notes" class="flex gap-4">
-                    <div style="flex: 1;">
-                        <select name="etudiant" style="width: 100%; padding: var(--space-3) var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md);">
-                            <option value="">-- Filtrer par étudiant --</option>
-                            <c:forEach var="etudiant" items="${etudiants}">
-                                <option value="${etudiant.id}" ${param.etudiant == etudiant.id ? 'selected' : ''}>
-                                    ${etudiant.nom} ${etudiant.prenom}
-                                </option>
-                            </c:forEach>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-secondary">
-                        Filtrer
-                    </button>
-                </form>
+                <div class="page-header-actions">
+                    <a href="${pageContext.request.contextPath}/notes/grille" class="btn btn-ghost">Mode grille</a>
+                    <a href="${pageContext.request.contextPath}/notes?action=add" class="btn btn-primary">+ Ajouter note</a>
+                </div>
             </div>
+
+            <c:if test="${error != null}"><div class="alert alert-danger">${error}</div></c:if>
+            <c:if test="${success != null}"><div class="alert alert-success">${success}</div></c:if>
+
+            <!-- Filtres -->
+            <form method="GET" action="${pageContext.request.contextPath}/notes">
+                <div class="toolbar">
+                    <select name="filiere">
+                        <option value="">Toutes les filières</option>
+                        <c:forEach var="f" items="${filieres}">
+                            <option value="${f}" ${selectedFiliere == f ? 'selected' : ''}>${f}</option>
+                        </c:forEach>
+                    </select>
+                    <select name="session">
+                        <option value="">Toutes les sessions</option>
+                        <option value="NORMALE" ${selectedSession == 'NORMALE' ? 'selected' : ''}>Normale</option>
+                        <option value="RATTRAPAGE" ${selectedSession == 'RATTRAPAGE' ? 'selected' : ''}>Rattrapage</option>
+                    </select>
+                    <select name="matiere">
+                        <option value="">Toutes les matières</option>
+                        <c:forEach var="m" items="${matieres}">
+                            <option value="${m.id}" ${selectedMatiere == m.id ? 'selected' : ''}>${m.intitule}</option>
+                        </c:forEach>
+                    </select>
+                    <button type="submit" class="btn btn-ghost">Filtrer</button>
+                </div>
+            </form>
 
             <!-- Table -->
-            <div class="card">
+            <div class="card" style="padding:0; overflow:hidden;">
                 <div class="table-container">
                     <table>
                         <thead>
@@ -64,11 +61,12 @@
                                 <th>Étudiant</th>
                                 <th>Matricule</th>
                                 <th>Matière</th>
-                                <th class="numeric">Note CC</th>
-                                <th class="numeric">Note Examen</th>
-                                <th class="numeric">Note Finale</th>
+                                <th>CC</th>
+                                <th>Examen</th>
+                                <th>Finale</th>
                                 <th>Mention</th>
-                                <th style="text-align: center;">Actions</th>
+                                <th>Saisi par</th>
+                                <th style="width:80px;"></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -76,32 +74,42 @@
                                 <c:when test="${notes != null && notes.size() > 0}">
                                     <c:forEach var="note" items="${notes}">
                                         <tr>
-                                            <td>${note.etudiantNom}</td>
-                                            <td class="numeric">${note.matricule}</td>
+                                            <td class="td-bold">${note.etudiantNom}</td>
+                                            <td class="td-mono" style="color:var(--accent-blue); font-size:12px;">${note.matricule}</td>
                                             <td>${note.matiereIntitule}</td>
-                                            <td class="numeric">${note.noteCC != null ? note.noteCC : '-'}</td>
-                                            <td class="numeric">${note.noteExam != null ? note.noteExam : '-'}</td>
-                                            <td class="numeric">
-                                                <strong>
-                                                    <fmt:formatNumber value="${note.noteFinale}" maxFractionDigits="2" />
-                                                </strong>
+                                            <td class="td-mono">${note.noteCC != null ? note.noteCC : '—'}</td>
+                                            <td class="td-mono">${note.noteExam != null ? note.noteExam : '—'}</td>
+                                            <td class="td-mono" style="font-weight:700;
+                                                color: ${note.noteFinale >= 16 ? '#059669' :
+                                                         note.noteFinale >= 14 ? '#0891b2' :
+                                                         note.noteFinale >= 12 ? '#7c3aed' :
+                                                         note.noteFinale >= 10 ? '#d97706' : '#dc2626'};">
+                                                <c:if test="${note.noteFinale != null}">
+                                                    <fmt:formatNumber value="${note.noteFinale}" maxFractionDigits="2"/>
+                                                </c:if>
+                                                <c:if test="${note.noteFinale == null}">—</c:if>
                                             </td>
                                             <td>
-                                                <c:if test="${note.mention != null}">
-                                                    <span class="badge badge-success">${note.mention}</span>
-                                                </c:if>
+                                                <c:choose>
+                                                    <c:when test="${note.noteFinale >= 16}"><span class="badge badge-success">Très Bien</span></c:when>
+                                                    <c:when test="${note.noteFinale >= 14}"><span class="badge badge-info">Bien</span></c:when>
+                                                    <c:when test="${note.noteFinale >= 12}"><span class="badge badge-purple">Assez Bien</span></c:when>
+                                                    <c:when test="${note.noteFinale >= 10}"><span class="badge badge-warning">Passable</span></c:when>
+                                                    <c:when test="${note.noteFinale != null}"><span class="badge badge-danger">Ajourné</span></c:when>
+                                                    <c:otherwise><span style="color:var(--text-muted);">—</span></c:otherwise>
+                                                </c:choose>
                                             </td>
-                                            <td style="text-align: center;">
-                                                <a href="${pageContext.request.contextPath}/notes?action=edit&id=${note.id}" class="btn btn-sm btn-ghost">
-                                                    Éditer
-                                                </a>
+                                            <td style="font-size:12px; color:var(--text-muted);">${note.saisiePar}</td>
+                                            <td>
+                                                <a href="${pageContext.request.contextPath}/notes?action=edit&id=${note.id}"
+                                                   class="btn btn-sm btn-ghost">✎</a>
                                             </td>
                                         </tr>
                                     </c:forEach>
                                 </c:when>
                                 <c:otherwise>
                                     <tr>
-                                        <td colspan="8" style="text-align: center; padding: var(--space-12); color: var(--color-text-secondary);">
+                                        <td colspan="9" style="text-align:center; padding:40px; color:var(--text-muted);">
                                             Aucune note enregistrée
                                         </td>
                                     </tr>

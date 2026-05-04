@@ -6,271 +6,397 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bulletin - NotesSup</title>
+    <title>Bulletin de notes — NotesSup</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
     <style>
         @media print {
-            body {
-                margin: 0;
-                padding: 0;
-            }
-            .no-print {
-                display: none;
-            }
+            .no-print { display: none !important; }
+            .main { margin-left: 0 !important; }
+            .sidebar { display: none !important; }
+            .page-content { padding: 0 !important; }
+            .bulletin-page { box-shadow: none !important; }
         }
 
         .bulletin-page {
             max-width: 210mm;
             min-height: 297mm;
-            margin: auto;
-            padding: 20mm;
+            margin: 0 auto;
+            padding: 24mm 20mm;
             background: white;
-            box-shadow: var(--shadow-lg);
-            font-family: 'DM Sans', Arial, sans-serif;
+            box-shadow: var(--shadow-modal);
+            border-radius: 12px;
+            font-family: var(--font-base);
         }
 
-        .bulletin-header {
-            text-align: center;
-            margin-bottom: 20px;
-            border-bottom: 2px solid var(--color-border-dark);
-            padding-bottom: 20px;
+        .bulletin-logos {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
         }
 
-        .bulletin-header h1 {
-            font-size: 24px;
-            margin: 0;
-        }
-
-        .bulletin-info {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-
-        .bulletin-info p {
-            margin: 5px 0;
-        }
-
-        .bulletin-notes {
-            margin-bottom: 20px;
-        }
-
-        .bulletin-notes table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        .bulletin-notes thead th {
-            background-color: var(--color-bg-hover);
-            padding: 8px;
-            text-align: left;
-            border: 1px solid var(--color-border);
-        }
-
-        .bulletin-notes tbody td {
-            padding: 8px;
-            border: 1px solid var(--color-border);
-        }
-
-        .bulletin-notes .numeric {
-            text-align: right;
-            font-family: 'DM Mono', monospace;
-        }
-
-        .bulletin-result {
-            background-color: var(--color-bg-hover);
-            padding: 15px;
+        .bulletin-logo-box {
+            width: 70px; height: 70px;
+            border: 2px dashed var(--border-medium);
             border-radius: 8px;
-            margin-bottom: 20px;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 20px;
-        }
-
-        .bulletin-result-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 11px;
             text-align: center;
         }
 
-        .bulletin-result-value {
+        .bulletin-center-info {
+            text-align: center;
+            flex: 1;
+            padding: 0 20px;
+        }
+
+        .bulletin-univ {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-primary);
+        }
+
+        .bulletin-dept {
+            font-size: 11.5px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .bulletin-title {
             font-size: 20px;
-            font-weight: bold;
-            color: var(--color-primary);
-            font-family: 'DM Mono', monospace;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--sidebar-bg);
+            margin-top: 10px;
+            letter-spacing: 0.03em;
         }
 
-        .bulletin-result-label {
+        .bulletin-session-info {
             font-size: 12px;
-            color: var(--color-text-secondary);
+            color: var(--text-muted);
+            margin-top: 4px;
         }
 
-        .bulletin-footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 2px solid var(--color-border-dark);
+        .bulletin-student-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            font-size: 12px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+            margin: 20px 0;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            overflow: hidden;
+            font-size: 12.5px;
         }
 
-        .signature-box {
+        .bulletin-student-cell {
+            padding: 8px 12px;
+            border-right: 1px solid var(--border-light);
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .bulletin-student-cell:nth-child(3n) { border-right: none; }
+        .bulletin-student-cell:nth-last-child(-n+3) { border-bottom: none; }
+
+        .bulletin-key {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+            letter-spacing: 0.05em;
+        }
+
+        .bulletin-val {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .bulletin-table thead th {
+            background: var(--sidebar-bg) !important;
+            color: white !important;
+            padding: 10px 12px;
+            font-size: 11.5px;
+        }
+
+        .bulletin-table tbody td { padding: 9px 12px; font-size: 12.5px; }
+        .bulletin-table tbody tr:nth-child(even) { background: var(--bg-row-alt); }
+
+        .bulletin-total-row td {
+            background: var(--sidebar-bg) !important;
+            color: white !important;
+            font-weight: 700;
+            padding: 10px 12px;
+        }
+
+        .bulletin-result-banner {
+            padding: 20px 24px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .bulletin-result-banner.admis {
+            background: oklch(0.96 0.06 160);
+            border: 1px solid oklch(0.80 0.12 160);
+        }
+
+        .bulletin-result-banner.ajoune {
+            background: oklch(0.96 0.07 22);
+            border: 1px solid oklch(0.80 0.14 22);
+        }
+
+        .bulletin-signatures {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-top: 40px;
+        }
+
+        .signature-zone {
             text-align: center;
+            padding-top: 48px;
+            border-top: 1px solid var(--text-primary);
+            font-size: 12px;
+            color: var(--text-secondary);
         }
 
-        .signature-line {
-            margin-top: 30px;
-            border-top: 1px solid var(--color-text-primary);
-            padding-top: 5px;
+        .locked-screen {
+            text-align: center;
+            padding: 80px 24px;
         }
     </style>
 </head>
 <body>
-    <!-- Include Sidebar -->
     <jsp:include page="/WEB-INF/views/components/sidebar.jsp" />
 
-    <!-- Main Content -->
     <main class="main">
-        <!-- Page Header -->
-        <header class="page-header">
-            <div class="flex-between">
+        <div class="page-content">
+            <div class="page-header no-print">
                 <div>
-                    <h1>Bulletin</h1>
-                    <p>Relevé de notes académiques</p>
+                    <h1>Bulletin de notes</h1>
+                    <p class="subtitle">Relevé de notes académiques officiel</p>
                 </div>
-                <div class="no-print" style="display: flex; gap: var(--space-4);">
-                    <button class="btn btn-secondary" onclick="window.print();">
-                        Imprimer
-                    </button>
-                    <a href="${pageContext.request.contextPath}/bulletins?format=pdf" class="btn btn-primary">
-                        Télécharger PDF
-                    </a>
+                <div class="page-header-actions">
+                    <!-- Sélecteur élève (chef/enseignant) -->
+                    <c:if test="${sessionScope.user.role != 'ETUDIANT'}">
+                        <form method="GET" action="${pageContext.request.contextPath}/bulletins" style="display:flex; gap:8px;">
+                            <select name="etudiantId" style="padding:9px 12px; border-radius:8px; border:1.5px solid var(--border-medium); font-family:var(--font-base);">
+                                <option value="">— Sélectionner un étudiant —</option>
+                                <c:forEach var="e" items="${etudiants}">
+                                    <option value="${e.id}" ${selectedEtudiantId == e.id ? 'selected' : ''}>${e.nom} ${e.prenom} (${e.matricule})</option>
+                                </c:forEach>
+                            </select>
+                            <select name="session" style="padding:9px 12px; border-radius:8px; border:1.5px solid var(--border-medium); font-family:var(--font-base);">
+                                <option value="NORMALE" ${selectedSession == 'NORMALE' ? 'selected' : ''}>Session Normale</option>
+                                <option value="RATTRAPAGE" ${selectedSession == 'RATTRAPAGE' ? 'selected' : ''}>Rattrapage</option>
+                            </select>
+                            <button type="submit" class="btn btn-ghost">Afficher</button>
+                        </form>
+                    </c:if>
+                    <c:if test="${etudiant != null}">
+                        <button class="btn btn-ghost" onclick="window.print();">🖨 Imprimer</button>
+                        <a href="${pageContext.request.contextPath}/bulletins?format=pdf${selectedEtudiantId != null ? '&etudiantId='.concat(selectedEtudiantId) : ''}"
+                           class="btn btn-primary">↓ Télécharger PDF</a>
+                    </c:if>
                 </div>
             </div>
-        </header>
 
-        <!-- Page Content -->
-        <div class="page-content">
             <c:if test="${error != null}">
-                <div class="alert alert-danger no-print" style="margin-bottom: var(--space-8);">
-                    ${error}
+                <div class="alert alert-danger no-print">${error}</div>
+            </c:if>
+
+            <!-- Locked for student if not published -->
+            <c:if test="${locked}">
+                <div class="card locked-screen">
+                    <div style="font-size:48px; margin-bottom:16px;">🔒</div>
+                    <div style="font-size:18px; font-weight:700; color:var(--text-primary); margin-bottom:8px;">
+                        Bulletin non disponible
+                    </div>
+                    <p style="color:var(--text-secondary);">
+                        Les résultats de votre filière n'ont pas encore été publiés par le chef de département.
+                    </p>
                 </div>
             </c:if>
 
-            <c:if test="${etudiant != null}">
-                <!-- Bulletin Content -->
+            <!-- Bulletin -->
+            <c:if test="${etudiant != null && !locked}">
                 <div class="bulletin-page">
-                    <!-- Header -->
-                    <div class="bulletin-header">
-                        <h1>BULLETIN DE NOTES</h1>
-                        <p style="margin: 10px 0 0 0; font-size: 12px; color: var(--color-text-secondary);">
-                            Année académique: ${anneeAcademique}
-                        </p>
+                    <!-- Logos + Header -->
+                    <div class="bulletin-logos">
+                        <div class="bulletin-logo-box">Logo<br>Univ.</div>
+                        <div class="bulletin-center-info">
+                            <div class="bulletin-univ">Université de l'ICT</div>
+                            <div class="bulletin-dept">UFR Sciences &amp; Technologies · Département Informatique</div>
+                            <div class="bulletin-title">Bulletin de Notes</div>
+                            <div class="bulletin-session-info">
+                                Session ${selectedSession != null ? selectedSession : 'Normale'} —
+                                Année académique ${anneeAcademique != null ? anneeAcademique : '—'}
+                            </div>
+                        </div>
+                        <div class="bulletin-logo-box">Logo<br>Dépt.</div>
                     </div>
 
-                    <!-- Student Info -->
-                    <div class="bulletin-info">
-                        <div>
-                            <p><strong>Étudiant:</strong> ${etudiant.nom} ${etudiant.prenom}</p>
-                            <p><strong>Matricule:</strong> ${etudiant.matricule}</p>
-                            <p><strong>Filière:</strong> ${etudiant.filiere}</p>
+                    <!-- Student info grid -->
+                    <div class="bulletin-student-grid">
+                        <div class="bulletin-student-cell">
+                            <div class="bulletin-key">Nom</div>
+                            <div class="bulletin-val">${etudiant.nom}</div>
                         </div>
-                        <div>
-                            <p><strong>Année:</strong> ${etudiant.annee}</p>
-                            <p><strong>Semestre:</strong> 1</p>
-                            <p><strong>Session:</strong> Normale</p>
+                        <div class="bulletin-student-cell">
+                            <div class="bulletin-key">Prénom</div>
+                            <div class="bulletin-val">${etudiant.prenom}</div>
+                        </div>
+                        <div class="bulletin-student-cell">
+                            <div class="bulletin-key">Matricule</div>
+                            <div class="bulletin-val" style="font-family:var(--font-mono);">${etudiant.matricule}</div>
+                        </div>
+                        <div class="bulletin-student-cell">
+                            <div class="bulletin-key">Filière</div>
+                            <div class="bulletin-val">${etudiant.filiere}</div>
+                        </div>
+                        <div class="bulletin-student-cell">
+                            <div class="bulletin-key">Année</div>
+                            <div class="bulletin-val">Licence ${etudiant.annee}</div>
+                        </div>
+                        <div class="bulletin-student-cell">
+                            <div class="bulletin-key">Téléphone</div>
+                            <div class="bulletin-val" style="font-family:var(--font-mono);">${etudiant.telephone != null ? etudiant.telephone : '—'}</div>
                         </div>
                     </div>
 
-                    <!-- Notes Table -->
-                    <div class="bulletin-notes">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Matière</th>
-                                    <th class="numeric">Coef.</th>
-                                    <th class="numeric">Note CC</th>
-                                    <th class="numeric">Note Examen</th>
-                                    <th class="numeric">Note Finale</th>
-                                    <th>Mention</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <c:choose>
-                                    <c:when test="${notes != null && notes.size() > 0}">
-                                        <c:forEach var="note" items="${notes}">
-                                            <tr>
-                                                <td>${note.matiereIntitule}</td>
-                                                <td class="numeric">${note.coefficient}</td>
-                                                <td class="numeric">
-                                                    <c:if test="${note.noteCC != null}">
-                                                        <fmt:formatNumber value="${note.noteCC}" maxFractionDigits="2" />
-                                                    </c:if>
-                                                </td>
-                                                <td class="numeric">
-                                                    <c:if test="${note.noteExam != null}">
-                                                        <fmt:formatNumber value="${note.noteExam}" maxFractionDigits="2" />
-                                                    </c:if>
-                                                </td>
-                                                <td class="numeric">
-                                                    <strong>
-                                                        <fmt:formatNumber value="${note.noteFinale}" maxFractionDigits="2" />
-                                                    </strong>
-                                                </td>
-                                                <td>${note.mention}</td>
-                                            </tr>
-                                        </c:forEach>
-                                    </c:when>
-                                    <c:otherwise>
+                    <!-- Notes table -->
+                    <table class="bulletin-table" style="width:100%; border-collapse:collapse; margin-bottom:0;">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Matière</th>
+                                <th>Coeff.</th>
+                                <th>CC</th>
+                                <th>Examen</th>
+                                <th>Moyenne</th>
+                                <th>Points</th>
+                                <th>Mention</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:set var="totalPoints" value="0" />
+                            <c:set var="totalCoeff" value="0" />
+                            <c:choose>
+                                <c:when test="${notes != null && notes.size() > 0}">
+                                    <c:forEach var="note" items="${notes}">
                                         <tr>
-                                            <td colspan="6" style="text-align: center; padding: 20px;">
-                                                Aucune note enregistrée
+                                            <td style="font-family:var(--font-mono); color:var(--accent-blue); font-size:12px;">${note.matiereCode}</td>
+                                            <td>${note.matiereIntitule}</td>
+                                            <td style="font-family:var(--font-mono); text-align:center;">${note.coefficient}</td>
+                                            <td style="font-family:var(--font-mono); text-align:right;">
+                                                <c:if test="${note.noteCC != null}"><fmt:formatNumber value="${note.noteCC}" maxFractionDigits="2"/></c:if>
+                                            </td>
+                                            <td style="font-family:var(--font-mono); text-align:right;">
+                                                <c:if test="${note.noteExam != null}"><fmt:formatNumber value="${note.noteExam}" maxFractionDigits="2"/></c:if>
+                                            </td>
+                                            <td style="font-family:var(--font-mono); text-align:right; font-weight:700;
+                                                color: ${note.noteFinale >= 16 ? '#059669' :
+                                                         note.noteFinale >= 14 ? '#0891b2' :
+                                                         note.noteFinale >= 12 ? '#7c3aed' :
+                                                         note.noteFinale >= 10 ? '#d97706' : '#dc2626'};">
+                                                <c:if test="${note.noteFinale != null}"><fmt:formatNumber value="${note.noteFinale}" maxFractionDigits="2"/></c:if>
+                                            </td>
+                                            <td style="font-family:var(--font-mono); text-align:right;">
+                                                <c:if test="${note.noteFinale != null && note.coefficient != null}">
+                                                    <fmt:formatNumber value="${note.noteFinale * note.coefficient}" maxFractionDigits="2"/>
+                                                </c:if>
+                                            </td>
+                                            <td>
+                                                <c:choose>
+                                                    <c:when test="${note.noteFinale >= 16}">Très Bien</c:when>
+                                                    <c:when test="${note.noteFinale >= 14}">Bien</c:when>
+                                                    <c:when test="${note.noteFinale >= 12}">Assez Bien</c:when>
+                                                    <c:when test="${note.noteFinale >= 10}">Passable</c:when>
+                                                    <c:when test="${note.noteFinale != null}">Ajourné(e)</c:when>
+                                                </c:choose>
                                             </td>
                                         </tr>
-                                    </c:otherwise>
+                                    </c:forEach>
+                                </c:when>
+                                <c:otherwise>
+                                    <tr><td colspan="8" style="text-align:center; padding:20px; color:var(--text-muted);">Aucune note enregistrée</td></tr>
+                                </c:otherwise>
+                            </c:choose>
+                        </tbody>
+                        <tfoot>
+                            <tr class="bulletin-total-row">
+                                <td colspan="2">TOTAL / MOYENNE</td>
+                                <td style="font-family:var(--font-mono); text-align:center;">${totalCoefficients}</td>
+                                <td></td>
+                                <td></td>
+                                <td style="font-family:var(--font-mono); text-align:right;">
+                                    <fmt:formatNumber value="${moyenneGenerale}" maxFractionDigits="2"/>
+                                </td>
+                                <td style="font-family:var(--font-mono); text-align:right;">
+                                    <fmt:formatNumber value="${totalPoints}" maxFractionDigits="2"/>
+                                </td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <!-- Result banner -->
+                    <div class="bulletin-result-banner ${moyenneGenerale >= 10 ? 'admis' : 'ajoune'}">
+                        <div>
+                            <div style="font-size:13px; <c:choose><c:when test='${moyenneGenerale >= 10}'>color:oklch(0.28 0.14 160);</c:when><c:otherwise>color:oklch(0.35 0.18 22);</c:otherwise></c:choose>">
+                                Moyenne générale
+                            </div>
+                            <div style="font-size:24px; font-weight:800; font-family:var(--font-mono);
+                                <c:choose><c:when test='${moyenneGenerale >= 10}'>color:oklch(0.28 0.14 160);</c:when><c:otherwise>color:oklch(0.35 0.18 22);</c:otherwise></c:choose>">
+                                <fmt:formatNumber value="${moyenneGenerale}" maxFractionDigits="2"/>/20
+                                &nbsp;
+                                <c:choose>
+                                    <c:when test="${moyenneGenerale >= 16}">Très Bien</c:when>
+                                    <c:when test="${moyenneGenerale >= 14}">Bien</c:when>
+                                    <c:when test="${moyenneGenerale >= 12}">Assez Bien</c:when>
+                                    <c:when test="${moyenneGenerale >= 10}">Passable</c:when>
+                                    <c:otherwise>Insuffisant</c:otherwise>
                                 </c:choose>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Results Summary -->
-                    <div class="bulletin-result">
-                        <div class="bulletin-result-item">
-                            <div class="bulletin-result-label">Moyenne Générale</div>
-                            <div class="bulletin-result-value">
-                                <fmt:formatNumber value="${moyenneGenerale}" maxFractionDigits="2" />
                             </div>
                         </div>
-                        <div class="bulletin-result-item">
-                            <div class="bulletin-result-label">Taux Réussite</div>
-                            <div class="bulletin-result-value">${tauxReussite}%</div>
-                        </div>
-                        <div class="bulletin-result-item">
-                            <div class="bulletin-result-label">Mention</div>
-                            <div class="bulletin-result-value" style="font-size: 16px;">
-                                ${mentionGenerale}
-                            </div>
+                        <div style="font-size:18px; font-weight:800;
+                            <c:choose><c:when test='${moyenneGenerale >= 10}'>color:oklch(0.28 0.14 160);</c:when><c:otherwise>color:oklch(0.35 0.18 22);</c:otherwise></c:choose>">
+                            <c:choose>
+                                <c:when test="${moyenneGenerale >= 10}">✓ ADMIS(E)</c:when>
+                                <c:otherwise>✗ AJOURNÉ(E)</c:otherwise>
+                            </c:choose>
                         </div>
                     </div>
 
-                    <!-- Footer with Signatures -->
-                    <div class="bulletin-footer">
-                        <div class="signature-box">
-                            <div class="signature-line">Directeur de Filière</div>
-                        </div>
-                        <div class="signature-box">
-                            <div class="signature-line">Chef d'Établissement</div>
-                        </div>
+                    <!-- Signatures -->
+                    <div class="bulletin-signatures">
+                        <div class="signature-zone">Directeur de Filière</div>
+                        <div class="signature-zone">Chef de Département</div>
+                        <div class="signature-zone">Directeur des Études</div>
+                    </div>
+
+                    <div style="text-align:center; margin-top:24px; font-size:11px; color:var(--text-muted);">
+                        Généré par NotesSup · ICT 423 · <fmt:formatDate value="<%= new java.util.Date() %>" pattern="dd/MM/yyyy"/>
                     </div>
                 </div>
             </c:if>
 
-            <c:if test="${etudiant == null}">
-                <div class="card">
-                    <p style="text-align: center; color: var(--color-text-secondary);">
-                        Aucun bulletin disponible pour votre compte.
+            <!-- No bulletin selected -->
+            <c:if test="${etudiant == null && !locked}">
+                <div class="card" style="text-align:center; padding:64px;">
+                    <div style="font-size:40px; margin-bottom:16px;">📄</div>
+                    <div style="font-size:16px; font-weight:700; color:var(--text-primary); margin-bottom:8px;">
+                        Sélectionner un étudiant
+                    </div>
+                    <p style="color:var(--text-secondary);">
+                        Choisissez un étudiant dans le sélecteur ci-dessus pour afficher son bulletin.
                     </p>
                 </div>
             </c:if>

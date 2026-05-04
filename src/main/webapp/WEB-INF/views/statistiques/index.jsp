@@ -6,178 +6,240 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Statistiques - NotesSup</title>
+    <title>Statistiques — NotesSup</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <style>
+        .filiere-toggles { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+        .toggle-btn {
+            padding: 8px 16px; border-radius: 8px; border: 1.5px solid var(--border-medium);
+            background: white; color: var(--text-primary); font-size: 13px; font-weight: 500;
+            cursor: pointer; font-family: var(--font-base); transition: all var(--transition-fast);
+        }
+        .toggle-btn.active { background: var(--accent-blue); border-color: var(--accent-blue); color: white; }
+
+        .mention-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .mention-bar-label { width: 90px; font-size: 13px; font-weight: 500; }
+        .mention-bar-track { flex: 1; height: 10px; border-radius: 99px; background: var(--border-light); overflow: hidden; }
+        .mention-bar-fill { height: 100%; border-radius: 99px; }
+        .mention-bar-count { font-size: 13px; font-family: var(--font-mono); font-weight: 600; width: 40px; text-align: right; }
+    </style>
 </head>
 <body>
-    <!-- Include Sidebar -->
     <jsp:include page="/WEB-INF/views/components/sidebar.jsp" />
 
-    <!-- Main Content -->
     <main class="main">
-        <!-- Page Header -->
-        <header class="page-header">
-            <div class="flex-between">
+        <div class="page-content">
+            <div class="page-header">
                 <div>
                     <h1>Statistiques</h1>
-                    <p>Vue d'ensemble et analyses des résultats</p>
+                    <p class="subtitle">Vue d'ensemble et analyses des résultats</p>
                 </div>
-                <a href="${pageContext.request.contextPath}/export?format=csv" class="btn btn-ghost">
-                    Exporter CSV
-                </a>
+                <div class="page-header-actions">
+                    <a href="${pageContext.request.contextPath}/export?format=csv" class="btn btn-ghost">↓ Export CSV</a>
+                </div>
             </div>
-        </header>
 
-        <!-- Page Content -->
-        <div class="page-content">
-            <!-- Summary KPIs -->
-            <div class="grid-4" style="margin-bottom: var(--space-12);">
-                <div class="kpi-card">
-                    <div class="kpi-number">${totalEtudiants}</div>
-                    <div class="kpi-label">Étudiants</div>
+            <!-- Filière Toggles -->
+            <c:if test="${filieres != null}">
+                <div class="filiere-toggles">
+                    <a href="${pageContext.request.contextPath}/statistiques"
+                       class="toggle-btn ${selectedFiliere == null ? 'active' : ''}">Toutes</a>
+                    <c:forEach var="f" items="${filieres}">
+                        <a href="${pageContext.request.contextPath}/statistiques?filiere=${f}"
+                           class="toggle-btn ${selectedFiliere == f ? 'active' : ''}">${f}</a>
+                    </c:forEach>
                 </div>
-                <div class="kpi-card">
-                    <div class="kpi-number">${etudiantsAdmis}</div>
-                    <div class="kpi-label">Admis</div>
-                    <div class="kpi-badge">${pourcentageAdmis}%</div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-number">${etudiantsAux}</div>
-                    <div class="kpi-label">Auxilaire</div>
-                    <div class="kpi-badge" style="background-color: rgba(255, 193, 7, 0.1); color: var(--color-warning);">
-                        ${pourcentageAux}%
+            </c:if>
+
+            <!-- KPI Cards -->
+            <div class="grid-4" style="margin-bottom: 24px;">
+                <div class="stat-card">
+                    <div class="stat-card-icon" style="background: oklch(0.56 0.16 252 / 0.12);">👥</div>
+                    <div>
+                        <div class="stat-card-value">${totalEtudiants != null ? totalEtudiants : 0}</div>
+                        <div class="stat-card-label">Étudiants</div>
                     </div>
                 </div>
-                <div class="kpi-card">
-                    <div class="kpi-number">${moyenneGenerale}</div>
-                    <div class="kpi-label">Moyenne</div>
+                <div class="stat-card">
+                    <div class="stat-card-icon" style="background: oklch(0.58 0.14 160 / 0.12);">📊</div>
+                    <div>
+                        <div class="stat-card-value td-mono">
+                            <c:if test="${moyenneGenerale != null}">
+                                <fmt:formatNumber value="${moyenneGenerale}" maxFractionDigits="2"/>
+                            </c:if>
+                            <c:if test="${moyenneGenerale == null}">—</c:if>
+                        </div>
+                        <div class="stat-card-label">Moyenne générale</div>
+                    </div>
                 </div>
-            </div>
-
-            <!-- Distribution by Mention -->
-            <div class="card" style="margin-bottom: var(--space-8);">
-                <div class="card-header">
-                    <h2>Distribution des mentions</h2>
+                <div class="stat-card">
+                    <div class="stat-card-icon" style="background: oklch(0.72 0.16 72 / 0.12);">✅</div>
+                    <div>
+                        <div class="stat-card-value">${pourcentageAdmis != null ? pourcentageAdmis : 0}%</div>
+                        <div class="stat-card-label">Taux de réussite</div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Mention</th>
-                                    <th class="numeric">Nombre</th>
-                                    <th class="numeric">Pourcentage</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <c:forEach var="mention" items="${mentionStats}">
-                                    <tr>
-                                        <td>
-                                            <span class="badge badge-primary">${mention.mention}</span>
-                                        </td>
-                                        <td class="numeric">${mention.count}</td>
-                                        <td class="numeric">${mention.percentage}%</td>
-                                    </tr>
-                                </c:forEach>
-                            </tbody>
-                        </table>
+                <div class="stat-card">
+                    <div class="stat-card-icon" style="background: oklch(0.62 0.16 300 / 0.12);">📚</div>
+                    <div>
+                        <div class="stat-card-value">${totalMatieres != null ? totalMatieres : 0}</div>
+                        <div class="stat-card-label">Matières évaluées</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Top Students -->
-            <div class="grid-2" style="margin-bottom: var(--space-8);">
+            <!-- Main content: 2 columns -->
+            <div style="display:grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px;">
+                <!-- Table par matière -->
                 <div class="card">
-                    <div class="card-header">
-                        <h2>Top 5 Meilleurs</h2>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-container">
-                            <table style="font-size: var(--text-sm);">
-                                <thead>
-                                    <tr>
-                                        <th>Étudiant</th>
-                                        <th class="numeric">Moyenne</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <c:forEach var="student" items="${topStudents}" varStatus="loop">
-                                        <c:if test="${loop.index < 5}">
+                    <div class="card-header"><h3>Résultats par matière</h3></div>
+                    <c:choose>
+                        <c:when test="${statsParMatiere != null && !statsParMatiere.isEmpty()}">
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Matière</th>
+                                            <th>Moyenne</th>
+                                            <th>Max</th>
+                                            <th>Min</th>
+                                            <th>Réussite</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <c:forEach var="s" items="${statsParMatiere}">
                                             <tr>
-                                                <td>${student.nom} ${student.prenom}</td>
-                                                <td class="numeric">
-                                                    <fmt:formatNumber value="${student.moyenne}" maxFractionDigits="2" />
+                                                <td>${s.matiereNom}</td>
+                                                <td class="td-mono" style="font-weight:700;
+                                                    color: ${s.moyenne >= 10 ? 'var(--accent-green)' : 'var(--accent-red)'};">
+                                                    <fmt:formatNumber value="${s.moyenne}" maxFractionDigits="2"/>
+                                                </td>
+                                                <td class="td-mono"><fmt:formatNumber value="${s.max}" maxFractionDigits="2"/></td>
+                                                <td class="td-mono"><fmt:formatNumber value="${s.min}" maxFractionDigits="2"/></td>
+                                                <td>
+                                                    <div style="display:flex; align-items:center; gap:8px;">
+                                                        <div class="progress-bar-track" style="width:60px;">
+                                                            <div class="progress-bar-fill"
+                                                                 style="width:${s.tauxReussite}%;
+                                                                        background: ${s.tauxReussite >= 50 ? 'var(--accent-green)' : 'var(--accent-red)'};"></div>
+                                                        </div>
+                                                        <span style="font-size:12px; color:var(--text-secondary);">${s.tauxReussite}%</span>
+                                                    </div>
                                                 </td>
                                             </tr>
-                                        </c:if>
-                                    </c:forEach>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                                        </c:forEach>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </c:when>
+                        <c:otherwise>
+                            <p style="color:var(--text-muted); font-size:13px; text-align:center; padding:24px 0;">Aucune donnée disponible</p>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
 
+                <!-- Distribution des mentions -->
                 <div class="card">
-                    <div class="card-header">
-                        <h2>5 Nécessitant Aide</h2>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-container">
-                            <table style="font-size: var(--text-sm);">
-                                <thead>
-                                    <tr>
-                                        <th>Étudiant</th>
-                                        <th class="numeric">Moyenne</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <c:forEach var="student" items="${bottomStudents}" varStatus="loop">
-                                        <c:if test="${loop.index < 5}">
-                                            <tr>
-                                                <td>${student.nom} ${student.prenom}</td>
-                                                <td class="numeric">
-                                                    <fmt:formatNumber value="${student.moyenne}" maxFractionDigits="2" />
-                                                </td>
-                                            </tr>
-                                        </c:if>
-                                    </c:forEach>
-                                </tbody>
-                            </table>
+                    <div class="card-header"><h3>Distribution des mentions</h3></div>
+                    <div class="mention-bar">
+                        <span class="mention-bar-label" style="color:#059669;">Très Bien</span>
+                        <div class="mention-bar-track">
+                            <div class="mention-bar-fill" style="width:${tresBienPct != null ? tresBienPct : 0}%; background:#059669;"></div>
                         </div>
+                        <span class="mention-bar-count">${tresBienCount != null ? tresBienCount : 0}</span>
+                    </div>
+                    <div class="mention-bar">
+                        <span class="mention-bar-label" style="color:#0891b2;">Bien</span>
+                        <div class="mention-bar-track">
+                            <div class="mention-bar-fill" style="width:${bienPct != null ? bienPct : 0}%; background:#0891b2;"></div>
+                        </div>
+                        <span class="mention-bar-count">${bienCount != null ? bienCount : 0}</span>
+                    </div>
+                    <div class="mention-bar">
+                        <span class="mention-bar-label" style="color:#7c3aed;">Assez Bien</span>
+                        <div class="mention-bar-track">
+                            <div class="mention-bar-fill" style="width:${assezBienPct != null ? assezBienPct : 0}%; background:#7c3aed;"></div>
+                        </div>
+                        <span class="mention-bar-count">${assezBienCount != null ? assezBienCount : 0}</span>
+                    </div>
+                    <div class="mention-bar">
+                        <span class="mention-bar-label" style="color:#d97706;">Passable</span>
+                        <div class="mention-bar-track">
+                            <div class="mention-bar-fill" style="width:${passablePct != null ? passablePct : 0}%; background:#d97706;"></div>
+                        </div>
+                        <span class="mention-bar-count">${passableCount != null ? passableCount : 0}</span>
+                    </div>
+                    <div class="mention-bar">
+                        <span class="mention-bar-label" style="color:#dc2626;">Ajourné</span>
+                        <div class="mention-bar-track">
+                            <div class="mention-bar-fill" style="width:${ajournePct != null ? ajournePct : 0}%; background:#dc2626;"></div>
+                        </div>
+                        <span class="mention-bar-count">${ajourneCount != null ? ajourneCount : 0}</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Statistics by Filière -->
+            <!-- Classement -->
             <div class="card">
-                <div class="card-header">
-                    <h2>Statistiques par filière</h2>
-                </div>
-                <div class="card-body">
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Filière</th>
-                                    <th class="numeric">Étudiants</th>
-                                    <th class="numeric">Moyenne</th>
-                                    <th class="numeric">Taux Réussite</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <c:forEach var="filiereStats" items="${filieresStats}">
-                                    <tr>
-                                        <td>${filiereStats.filiere}</td>
-                                        <td class="numeric">${filiereStats.count}</td>
-                                        <td class="numeric">
-                                            <fmt:formatNumber value="${filiereStats.moyenne}" maxFractionDigits="2" />
-                                        </td>
-                                        <td class="numeric">${filiereStats.tauxReussite}%</td>
-                                    </tr>
-                                </c:forEach>
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="card-header"><h3>Classement général</h3></div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rang</th>
+                                <th>Matricule</th>
+                                <th>Nom</th>
+                                <th>Moyenne</th>
+                                <th>Mention</th>
+                                <th>Décision</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:choose>
+                                <c:when test="${topStudents != null && !topStudents.isEmpty()}">
+                                    <c:forEach var="s" items="${topStudents}" varStatus="loop">
+                                        <tr>
+                                            <td style="font-weight:700; font-size:16px;">
+                                                <c:choose>
+                                                    <c:when test="${loop.index == 0}">🥇</c:when>
+                                                    <c:when test="${loop.index == 1}">🥈</c:when>
+                                                    <c:when test="${loop.index == 2}">🥉</c:when>
+                                                    <c:otherwise>${loop.index + 1}</c:otherwise>
+                                                </c:choose>
+                                            </td>
+                                            <td class="td-mono" style="color:var(--accent-blue); font-size:12px;">${s.matricule}</td>
+                                            <td class="td-bold">${s.nom} ${s.prenom}</td>
+                                            <td class="td-mono" style="font-weight:700;
+                                                color: ${s.moyenne >= 16 ? '#059669' :
+                                                         s.moyenne >= 14 ? '#0891b2' :
+                                                         s.moyenne >= 12 ? '#7c3aed' :
+                                                         s.moyenne >= 10 ? '#d97706' : '#dc2626'};">
+                                                <fmt:formatNumber value="${s.moyenne}" maxFractionDigits="2"/>
+                                            </td>
+                                            <td>
+                                                <c:choose>
+                                                    <c:when test="${s.moyenne >= 16}"><span class="badge badge-success">Très Bien</span></c:when>
+                                                    <c:when test="${s.moyenne >= 14}"><span class="badge badge-info">Bien</span></c:when>
+                                                    <c:when test="${s.moyenne >= 12}"><span class="badge badge-purple">Assez Bien</span></c:when>
+                                                    <c:when test="${s.moyenne >= 10}"><span class="badge badge-warning">Passable</span></c:when>
+                                                    <c:otherwise><span class="badge badge-danger">Ajourné</span></c:otherwise>
+                                                </c:choose>
+                                            </td>
+                                            <td>
+                                                <c:choose>
+                                                    <c:when test="${s.moyenne >= 10}"><span class="badge badge-success">Admis(e)</span></c:when>
+                                                    <c:otherwise><span class="badge badge-danger">Ajourné(e)</span></c:otherwise>
+                                                </c:choose>
+                                            </td>
+                                        </tr>
+                                    </c:forEach>
+                                </c:when>
+                                <c:otherwise>
+                                    <tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-muted);">Aucune donnée disponible</td></tr>
+                                </c:otherwise>
+                            </c:choose>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
