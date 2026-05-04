@@ -42,6 +42,26 @@ public class UserDAO extends BaseDAO<User> {
         return null;
     }
 
+    public List<User> search(String query, int limit, int offset) throws SQLException {
+        List<User> users = new ArrayList<>();
+        String sql = "SELECT * FROM user WHERE login LIKE ? OR nom LIKE ? OR role LIKE ? LIMIT ? OFFSET ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            String searchTerm = "%" + query + "%";
+            pstmt.setString(1, searchTerm);
+            pstmt.setString(2, searchTerm);
+            pstmt.setString(3, searchTerm);
+            pstmt.setInt(4, limit);
+            pstmt.setInt(5, offset);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    users.add(mapUser(rs));
+                }
+            }
+        }
+        return users;
+    }
+
     public User findByLogin(String login) throws SQLException {
         String sql = "SELECT * FROM user WHERE login = ?";
         try (Connection conn = getConnection();

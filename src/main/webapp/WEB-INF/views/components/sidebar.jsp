@@ -14,6 +14,7 @@
                 <c:when test="${sessionScope.user.role == 'CHEF_DEPT'}">
                     <!-- Chef Dept Menu -->
                     <li><a href="${pageContext.request.contextPath}/etudiants">Étudiants</a></li>
+                    <li><a href="${pageContext.request.contextPath}/users">Utilisateurs</a></li>
                     <li><a href="${pageContext.request.contextPath}/matieres">Matières</a></li>
                     <li><a href="${pageContext.request.contextPath}/notes">Notes</a></li>
                     <li><a href="${pageContext.request.contextPath}/deliberations">Délibérations</a></li>

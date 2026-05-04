@@ -99,7 +99,8 @@ public class EtudiantServlet extends HttpServlet {
             } else {
                 // Create new etudiant
                 Etudiant etudiant = new Etudiant();
-                etudiant.setMatricule(req.getParameter("matricule"));
+                String matricule = req.getParameter("matricule");
+                etudiant.setMatricule(matricule);
                 etudiant.setNom(req.getParameter("nom"));
                 etudiant.setPrenom(req.getParameter("prenom"));
                 etudiant.setFiliere(req.getParameter("filiere"));
@@ -107,6 +108,19 @@ public class EtudiantServlet extends HttpServlet {
                 etudiant.setTelephone(req.getParameter("telephone"));
 
                 etudiantDAO.insert(etudiant);
+
+                // Auto-create User for the student
+                org.ict4d.notessup.models.User user = new org.ict4d.notessup.models.User();
+                user.setLogin(matricule);
+                String hashedPassword = org.mindrot.jbcrypt.BCrypt.hashpw("pass123", org.mindrot.jbcrypt.BCrypt.gensalt(10));
+                user.setPassword(hashedPassword);
+                user.setRole(Constants.ROLE_ETUDIANT);
+                user.setNom(req.getParameter("nom"));
+                user.setFiliere(req.getParameter("filiere"));
+                user.setEtudiantId(etudiant.getId());
+                
+                new org.ict4d.notessup.dao.UserDAO().insert(user);
+
                 resp.sendRedirect(req.getContextPath() + "/etudiants");
             }
         } catch (SQLException e) {

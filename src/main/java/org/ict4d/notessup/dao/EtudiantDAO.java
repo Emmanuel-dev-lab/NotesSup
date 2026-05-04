@@ -97,7 +97,7 @@ public class EtudiantDAO extends BaseDAO<Etudiant> {
     public void insert(Etudiant etudiant) throws SQLException {
         String sql = "INSERT INTO etudiant (matricule, nom, prenom, filiere, annee, telephone) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, etudiant.getMatricule());
             pstmt.setString(2, etudiant.getNom());
             pstmt.setString(3, etudiant.getPrenom());
@@ -105,6 +105,12 @@ public class EtudiantDAO extends BaseDAO<Etudiant> {
             pstmt.setInt(5, etudiant.getAnnee());
             pstmt.setString(6, etudiant.getTelephone());
             pstmt.executeUpdate();
+            
+            try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    etudiant.setId(generatedKeys.getLong(1));
+                }
+            }
         }
     }
 
