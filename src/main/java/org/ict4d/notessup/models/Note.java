@@ -12,6 +12,10 @@ public class Note {
     private String session;
     private String anneeAcademique;
     private String saisiePar;
+    
+    // O-O Relations
+    private Etudiant etudiant;
+    private Matiere matiere;
 
     public Note() {}
 
@@ -42,4 +46,10 @@ public class Note {
 
     public String getSaisiePar() { return saisiePar; }
     public void setSaisiePar(String saisiePar) { this.saisiePar = saisiePar; }
+
+    public Etudiant getEtudiant() { return etudiant; }
+    public void setEtudiant(Etudiant etudiant) { this.etudiant = etudiant; }
+
+    public Matiere getMatiere() { return matiere; }
+    public void setMatiere(Matiere matiere) { this.matiere = matiere; }
 }

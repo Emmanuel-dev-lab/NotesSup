@@ -107,62 +107,60 @@
                         <c:forEach var="delib" items="${deliberations}">
                             <div class="delib-card">
                                 <div class="delib-card-top"
-                                     style="background: ${delib.publiee ? 'var(--accent-green)' : 'var(--accent-amber)'};"></div>
+                                     style="background: ${delib.deliberation.publiee ? 'var(--accent-green)' : 'var(--accent-amber)'};"></div>
                                 <div class="delib-card-body">
-                                    <div class="delib-card-title">${delib.filiere}</div>
+                                    <div class="delib-card-title">${delib.deliberation.filiere}</div>
                                     <div class="delib-card-badges">
-                                        <span class="badge badge-neutral">${delib.session}</span>
-                                        <span class="badge badge-neutral">${delib.anneeAcademique}</span>
-                                        <span class="badge ${delib.publiee ? 'badge-success' : 'badge-warning'}">
-                                            ${delib.publiee ? 'Publiée' : 'En attente'}
+                                        <span class="badge badge-neutral">${delib.deliberation.session}</span>
+                                        <span class="badge badge-neutral">${delib.deliberation.anneeAcademique}</span>
+                                        <span class="badge ${delib.deliberation.publiee ? 'badge-success' : 'badge-warning'}">
+                                            ${delib.deliberation.publiee ? 'Publiée' : 'En attente'}
                                         </span>
                                     </div>
 
                                     <!-- 3 stats -->
                                     <div class="delib-stats">
                                         <div class="delib-stat">
-                                            <div class="delib-stat-value">${delib.nbEtudiants != null ? delib.nbEtudiants : '—'}</div>
+                                            <div class="delib-stat-value">${delib.nbEtudiants}</div>
                                             <div class="delib-stat-label">Étudiants</div>
                                         </div>
                                         <div class="delib-stat">
                                             <div class="delib-stat-value" style="color:var(--accent-green);">
-                                                ${delib.nbAdmis != null ? delib.nbAdmis : '—'}
+                                                ${delib.nbAdmis}
                                             </div>
                                             <div class="delib-stat-label">Admis</div>
                                         </div>
                                         <div class="delib-stat">
                                             <div class="delib-stat-value" style="color:var(--accent-blue);">
-                                                <c:if test="${delib.moyenne != null}">
-                                                    <fmt:formatNumber value="${delib.moyenne}" maxFractionDigits="2"/>
-                                                </c:if>
+                                                <c:if test="${delib.moyenne != null}"><fmt:formatNumber value="${delib.moyenne}" maxFractionDigits="2"/></c:if>
                                                 <c:if test="${delib.moyenne == null}">—</c:if>
                                             </div>
                                             <div class="delib-stat-label">Moyenne</div>
                                         </div>
                                     </div>
 
-                                    <c:if test="${delib.publiee && delib.datePublication != null}">
+                                    <c:if test="${delib.deliberation.publiee && delib.deliberation.datePublication != null}">
                                         <div class="delib-date">
-                                            Publié le <fmt:formatDate value="${delib.datePublication}" pattern="dd/MM/yyyy"/>
-                                            <c:if test="${delib.publiePar != null}"> · par ${delib.publiePar}</c:if>
+                                            Publié le <fmt:formatDate value="${delib.deliberation.datePublication}" pattern="dd/MM/yyyy"/>
+                                            <c:if test="${delib.deliberation.publiePar != null}"> · par ${delib.deliberation.publiePar}</c:if>
                                         </div>
                                     </c:if>
                                 </div>
 
                                 <div class="delib-actions">
-                                    <a href="${pageContext.request.contextPath}/deliberations?action=pv&id=${delib.id}"
+                                    <a href="${pageContext.request.contextPath}/deliberations?action=pv&id=${delib.deliberation.id}"
                                        class="btn btn-sm btn-ghost">📋 Voir PV</a>
-                                    <a href="${pageContext.request.contextPath}/deliberations?action=pdf&id=${delib.id}"
+                                    <a href="${pageContext.request.contextPath}/deliberations?action=pdf&id=${delib.deliberation.id}"
                                        class="btn btn-sm btn-ghost">↓ PDF</a>
-                                    <c:if test="${!delib.publiee && sessionScope.user.role == 'CHEF_DEPT'}">
+                                    <c:if test="${!delib.deliberation.publiee && sessionScope.user.role == 'CHEF_DEPT'}">
                                         <form method="POST" action="${pageContext.request.contextPath}/deliberations" style="display:inline;">
                                             <input type="hidden" name="action" value="publish">
-                                            <input type="hidden" name="id" value="${delib.id}">
+                                            <input type="hidden" name="id" value="${delib.deliberation.id}">
                                             <button type="submit" class="btn btn-sm btn-success">✓ Publier les résultats</button>
                                         </form>
                                     </c:if>
-                                    <c:if test="${delib.publiee && sessionScope.user.role == 'CHEF_DEPT'}">
-                                        <a href="${pageContext.request.contextPath}/deliberations?action=sms&id=${delib.id}"
+                                    <c:if test="${delib.deliberation.publiee && sessionScope.user.role == 'CHEF_DEPT'}">
+                                        <a href="${pageContext.request.contextPath}/deliberations?action=sms&id=${delib.deliberation.id}"
                                            class="btn btn-sm btn-warning">✉ Envoyer SMS</a>
                                     </c:if>
                                 </div>

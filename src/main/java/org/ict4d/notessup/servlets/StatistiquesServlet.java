@@ -11,16 +11,14 @@ import org.ict4d.notessup.dao.NoteDAO;
 import org.ict4d.notessup.dao.MatiereDAO;
 import org.ict4d.notessup.models.Note;
 import org.ict4d.notessup.models.Etudiant;
+import org.ict4d.notessup.models.Matiere;
 import org.ict4d.notessup.models.User;
 import org.ict4d.notessup.services.NoteService;
 import org.ict4d.notessup.utils.Constants;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -74,7 +72,7 @@ public class StatistiquesServlet extends HttpServlet {
                         }
                     }
                 }
-                avgNote = totalNotes.divide(new BigDecimal(sessionNotes.size()), 2, BigDecimal.ROUND_HALF_UP);
+                avgNote = totalNotes.divide(new BigDecimal(sessionNotes.size()), 2, java.math.RoundingMode.HALF_UP);
             }
 
             // Calculate per-student statistics and rankings
@@ -110,9 +108,11 @@ public class StatistiquesServlet extends HttpServlet {
 
             // Calculate pass rate per matiere
             Map<Long, Double> matierePassRates = new HashMap<>();
+            java.util.Map<Long, Matiere> matieresMap = new java.util.HashMap<>();
             try {
                 var matieres = matiereDAO.findAll(1000, 0);
                 for (var matiere : matieres) {
+                    matieresMap.put(matiere.getId(), matiere);
                     List<Note> matiereNotes = noteDAO.findByMatiere(matiere.getId(), 1000, 0);
                     if (!matiereNotes.isEmpty()) {
                         long passCount = matiereNotes.stream()
@@ -136,7 +136,13 @@ public class StatistiquesServlet extends HttpServlet {
             req.setAttribute("topStudents", topStudents);
             req.setAttribute("etudiantMoyennes", etudiantMoyennes);
             req.setAttribute("etudiantAdmis", etudiantAdmis);
+            
+            java.util.Map<Long, Etudiant> etudiantsMap = new java.util.HashMap<>();
+            for (Etudiant e : etudiants) etudiantsMap.put(e.getId(), e);
+            req.setAttribute("etudiantsMap", etudiantsMap);
+            
             req.setAttribute("matierePassRates", matierePassRates);
+            req.setAttribute("matieresMap", matieresMap);
             req.setAttribute("session", sessionParam != null ? sessionParam : "JUIN");
             req.setAttribute("anneeAcademique", anneeAcademique != null ? anneeAcademique : "2024/2025");
             req.setAttribute("filiere", filiere);

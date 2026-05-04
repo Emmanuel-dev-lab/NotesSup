@@ -11,7 +11,6 @@ import com.itextpdf.layout.properties.UnitValue;
 import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.colors.DeviceRgb;
-import com.itextpdf.kernel.colors.Color;
 
 import org.ict4d.notessup.dao.EtudiantDAO;
 import org.ict4d.notessup.dao.NoteDAO;
@@ -21,6 +20,7 @@ import org.ict4d.notessup.models.Note;
 import org.ict4d.notessup.models.Matiere;
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -197,6 +197,6 @@ public class PDFService {
         if (note == null) {
             return "-";
         }
-        return note.setScale(2, BigDecimal.ROUND_HALF_UP).toString();
+        return note.setScale(2, RoundingMode.HALF_UP).toString();
     }
 }

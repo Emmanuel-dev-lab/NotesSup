@@ -2,9 +2,12 @@ package org.ict4d.notessup.services;
 
 import org.ict4d.notessup.models.Note;
 import org.ict4d.notessup.dao.NoteDAO;
-import org.ict4d.notessup.dao.MatiereDAO;
 import org.ict4d.notessup.models.Matiere;
+import org.ict4d.notessup.dao.MatiereDAO;
+import org.ict4d.notessup.models.Etudiant;
+import org.ict4d.notessup.dao.EtudiantDAO;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -15,6 +18,7 @@ import java.util.List;
 public class NoteService {
     private final NoteDAO noteDAO;
     private final MatiereDAO matiereDAO;
+    private final EtudiantDAO etudiantDAO;
 
     // Barèmes de notation
     private static final BigDecimal NOTE_MINIMAL = BigDecimal.ZERO;
@@ -30,6 +34,7 @@ public class NoteService {
     public NoteService() {
         this.noteDAO = new NoteDAO();
         this.matiereDAO = new MatiereDAO();
+        this.etudiantDAO = new EtudiantDAO();
     }
 
     /**
@@ -47,7 +52,7 @@ public class NoteService {
         BigDecimal poidExam = new BigDecimal("0.6");
 
         BigDecimal noteFinale = noteCC.multiply(poidCC).add(noteExam.multiply(poidExam));
-        return noteFinale.setScale(2, BigDecimal.ROUND_HALF_UP);
+        return noteFinale.setScale(2, RoundingMode.HALF_UP);
     }
 
     /**
@@ -134,7 +139,7 @@ public class NoteService {
         }
 
         if (totalCoefficients.compareTo(BigDecimal.ZERO) > 0) {
-            return totalNotes.divide(totalCoefficients, 2, BigDecimal.ROUND_HALF_UP);
+            return totalNotes.divide(totalCoefficients, 2, RoundingMode.HALF_UP);
         }
         return BigDecimal.ZERO;
     }
@@ -165,9 +170,24 @@ public class NoteService {
 
         if (totalMatieres > 0) {
             return new BigDecimal(matiereAdmises)
-                    .divide(new BigDecimal(totalMatieres), 2, BigDecimal.ROUND_HALF_UP)
+                    .divide(new BigDecimal(totalMatieres), 2, RoundingMode.HALF_UP)
                     .multiply(new BigDecimal("100"));
         }
         return BigDecimal.ZERO;
+    }
+
+    /**
+     * Compose les relations (Etudiant, Matiere) pour une liste de notes.
+     * C'est la bonne pratique (DTO/Service mapping) au lieu du DB JOIN.
+     */
+    public void populateNoteRelations(List<Note> notes) throws SQLException {
+        for (Note note : notes) {
+            if (note.getEtudiantId() != null) {
+                note.setEtudiant(etudiantDAO.findById(note.getEtudiantId()));
+            }
+            if (note.getMatiereId() != null) {
+                note.setMatiere(matiereDAO.findById(note.getMatiereId()));
+            }
+        }
     }
 }

@@ -74,10 +74,10 @@
                                 <c:when test="${notes != null && notes.size() > 0}">
                                     <c:forEach var="note" items="${notes}">
                                         <tr>
-                                            <td class="td-bold">${note.etudiantNom}</td>
-                                            <td class="td-mono" style="color:var(--accent-blue); font-size:12px;">${note.matricule}</td>
-                                            <td>${note.matiereIntitule}</td>
-                                            <td class="td-mono">${note.noteCC != null ? note.noteCC : '—'}</td>
+                                            <td class="td-bold">${note.etudiant.nom} ${note.etudiant.prenom}</td>
+                                            <td class="td-mono" style="color:var(--accent-blue); font-size:12px;">${note.etudiant.matricule}</td>
+                                            <td>${note.matiere.intitule}</td>
+                                            <td class="td-mono">${note.noteCC != null ? note.noteCC : '?'}</td>
                                             <td class="td-mono">${note.noteExam != null ? note.noteExam : '—'}</td>
                                             <td class="td-mono" style="font-weight:700;
                                                 color: ${note.noteFinale >= 16 ? '#059669' :

@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.ict4d.notessup.models.Deliberation;
+import org.ict4d.notessup.models.DeliberationDTO;
 import org.ict4d.notessup.models.Etudiant;
 import org.ict4d.notessup.dao.DeliberationDAO;
 import org.ict4d.notessup.dao.EtudiantDAO;
@@ -49,7 +50,8 @@ public class DeliberationServlet extends HttpServlet {
                 int offset = (pageNum - 1) * PAGE_SIZE;
 
                 List<Deliberation> deliberations = deliberationDAO.findPublished(PAGE_SIZE, offset);
-                req.setAttribute("deliberations", deliberations);
+                List<DeliberationDTO> deliberationDTOs = enrichDeliberations(deliberations);
+                req.setAttribute("deliberations", deliberationDTOs);
                 req.setAttribute("currentPage", pageNum);
                 req.setAttribute("pageSize", PAGE_SIZE);
                 req.getRequestDispatcher("/WEB-INF/views/deliberations/published.jsp").forward(req, resp);
@@ -65,8 +67,10 @@ public class DeliberationServlet extends HttpServlet {
                 } else {
                     deliberations = deliberationDAO.findAll(PAGE_SIZE, offset);
                 }
+                
+                List<DeliberationDTO> deliberationDTOs = enrichDeliberations(deliberations);
 
-                req.setAttribute("deliberations", deliberations);
+                req.setAttribute("deliberations", deliberationDTOs);
                 req.setAttribute("currentPage", pageNum);
                 req.setAttribute("pageSize", PAGE_SIZE);
                 req.setAttribute("filiere", filiere);
@@ -175,5 +179,27 @@ public class DeliberationServlet extends HttpServlet {
         } catch (SQLException e) {
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    private List<DeliberationDTO> enrichDeliberations(List<Deliberation> deliberations) throws SQLException {
+        List<DeliberationDTO> dtos = new java.util.ArrayList<>();
+        for (Deliberation d : deliberations) {
+            DeliberationDTO dto = new DeliberationDTO(d);
+            List<Etudiant> etuds = etudiantDAO.findByFiliere(d.getFiliere(), 1000, 0);
+            dto.setNbEtudiants(etuds.size());
+            int admis = 0;
+            java.math.BigDecimal totalMoyennes = java.math.BigDecimal.ZERO;
+            for (Etudiant e : etuds) {
+                java.math.BigDecimal moy = noteService.calcMoyennePonderee(e.getId(), d.getSession(), d.getAnneeAcademique());
+                totalMoyennes = totalMoyennes.add(moy);
+                if (noteService.isAdmis(moy)) admis++;
+            }
+            dto.setNbAdmis(admis);
+            if (etuds.size() > 0) {
+                dto.setMoyenne(totalMoyennes.divide(new java.math.BigDecimal(etuds.size()), 2, java.math.RoundingMode.HALF_UP));
+            }
+            dtos.add(dto);
+        }
+        return dtos;
     }
 }

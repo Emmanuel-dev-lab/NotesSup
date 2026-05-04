@@ -103,12 +103,15 @@ public class NoteServlet extends HttpServlet {
                 } else {
                     notes = noteDAO.findAll(PAGE_SIZE, offset);
                 }
+                
+                noteService.populateNoteRelations(notes);
 
                 req.setAttribute("notes", notes);
                 req.setAttribute("currentPage", pageNum);
                 req.setAttribute("pageSize", PAGE_SIZE);
                 req.setAttribute("etudiant", etudiantId);
                 req.setAttribute("matiere", matiereId);
+
                 req.getRequestDispatcher("/WEB-INF/views/notes/list.jsp").forward(req, resp);
             }
         } catch (SQLException e) {

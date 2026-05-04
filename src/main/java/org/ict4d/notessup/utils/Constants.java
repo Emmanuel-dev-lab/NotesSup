@@ -8,7 +8,7 @@ public class Constants {
     public static final String DB_USER = "notessup_user";
     public static final String DB_PASSWORD = "notessup_pass";
     public static final String DB_URL = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT + "/" + DB_NAME
-        + "?useSSL=false&serverTimezone=UTC";
+        + "?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
 
     // Roles
     public static final String ROLE_CHEF = "CHEF_DEPT";

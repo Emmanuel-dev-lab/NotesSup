@@ -107,23 +107,24 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <c:forEach var="s" items="${statsParMatiere}">
+                                        <c:forEach var="s" items="${matierePassRates}">
                                             <tr>
-                                                <td>${s.matiereNom}</td>
-                                                <td class="td-mono" style="font-weight:700;
-                                                    color: ${s.moyenne >= 10 ? 'var(--accent-green)' : 'var(--accent-red)'};">
-                                                    <fmt:formatNumber value="${s.moyenne}" maxFractionDigits="2"/>
+                                                <td>${matieresMap[s.key].intitule}</td>
+                                                <td class="td-mono" style="font-weight:700; color: var(--text-muted);">
+                                                    —
                                                 </td>
-                                                <td class="td-mono"><fmt:formatNumber value="${s.max}" maxFractionDigits="2"/></td>
-                                                <td class="td-mono"><fmt:formatNumber value="${s.min}" maxFractionDigits="2"/></td>
+                                                <td class="td-mono">—</td>
+                                                <td class="td-mono">—</td>
                                                 <td>
                                                     <div style="display:flex; align-items:center; gap:8px;">
                                                         <div class="progress-bar-track" style="width:60px;">
                                                             <div class="progress-bar-fill"
-                                                                 style="width:${s.tauxReussite}%;
-                                                                        background: ${s.tauxReussite >= 50 ? 'var(--accent-green)' : 'var(--accent-red)'};"></div>
+                                                                 style="width:${s.value}%;
+                                                                        background: ${s.value >= 50 ? 'var(--accent-green)' : 'var(--accent-red)'};"></div>
                                                         </div>
-                                                        <span style="font-size:12px; color:var(--text-secondary);">${s.tauxReussite}%</span>
+                                                        <span style="font-size:12px; color:var(--text-secondary);">
+                                                            <fmt:formatNumber value="${s.value}" maxFractionDigits="2"/>%
+                                                        </span>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -207,27 +208,27 @@
                                                     <c:otherwise>${loop.index + 1}</c:otherwise>
                                                 </c:choose>
                                             </td>
-                                            <td class="td-mono" style="color:var(--accent-blue); font-size:12px;">${s.matricule}</td>
-                                            <td class="td-bold">${s.nom} ${s.prenom}</td>
+                                            <td class="td-mono" style="color:var(--accent-blue); font-size:12px;">${etudiantsMap[s.key].matricule}</td>
+                                            <td class="td-bold">${etudiantsMap[s.key].nom} ${etudiantsMap[s.key].prenom}</td>
                                             <td class="td-mono" style="font-weight:700;
-                                                color: ${s.moyenne >= 16 ? '#059669' :
-                                                         s.moyenne >= 14 ? '#0891b2' :
-                                                         s.moyenne >= 12 ? '#7c3aed' :
-                                                         s.moyenne >= 10 ? '#d97706' : '#dc2626'};">
-                                                <fmt:formatNumber value="${s.moyenne}" maxFractionDigits="2"/>
+                                                color: ${s.value >= 16 ? '#059669' :
+                                                         s.value >= 14 ? '#0891b2' :
+                                                         s.value >= 12 ? '#7c3aed' :
+                                                         s.value >= 10 ? '#d97706' : '#dc2626'};">
+                                                <fmt:formatNumber value="${s.value}" maxFractionDigits="2"/>
                                             </td>
                                             <td>
                                                 <c:choose>
-                                                    <c:when test="${s.moyenne >= 16}"><span class="badge badge-success">Très Bien</span></c:when>
-                                                    <c:when test="${s.moyenne >= 14}"><span class="badge badge-info">Bien</span></c:when>
-                                                    <c:when test="${s.moyenne >= 12}"><span class="badge badge-purple">Assez Bien</span></c:when>
-                                                    <c:when test="${s.moyenne >= 10}"><span class="badge badge-warning">Passable</span></c:when>
+                                                    <c:when test="${s.value >= 16}"><span class="badge badge-success">Très Bien</span></c:when>
+                                                    <c:when test="${s.value >= 14}"><span class="badge badge-info">Bien</span></c:when>
+                                                    <c:when test="${s.value >= 12}"><span class="badge badge-purple">Assez Bien</span></c:when>
+                                                    <c:when test="${s.value >= 10}"><span class="badge badge-warning">Passable</span></c:when>
                                                     <c:otherwise><span class="badge badge-danger">Ajourné</span></c:otherwise>
                                                 </c:choose>
                                             </td>
                                             <td>
                                                 <c:choose>
-                                                    <c:when test="${s.moyenne >= 10}"><span class="badge badge-success">Admis(e)</span></c:when>
+                                                    <c:when test="${s.value >= 10}"><span class="badge badge-success">Admis(e)</span></c:when>
                                                     <c:otherwise><span class="badge badge-danger">Ajourné(e)</span></c:otherwise>
                                                 </c:choose>
                                             </td>
