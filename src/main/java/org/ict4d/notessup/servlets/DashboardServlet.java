@@ -1,7 +1,6 @@
 package org.ict4d.notessup.servlets;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -14,7 +13,6 @@ import org.ict4d.notessup.dao.MatiereDAO;
 import java.io.IOException;
 import java.sql.SQLException;
 
-@WebServlet("/dashboard")
 public class DashboardServlet extends HttpServlet {
     private final EtudiantDAO etudiantDAO = new EtudiantDAO();
     private final NoteDAO noteDAO = new NoteDAO();
@@ -43,14 +41,14 @@ public class DashboardServlet extends HttpServlet {
                 req.setAttribute("totalMatieres", totalMatieres);
                 req.setAttribute("totalNotes", totalNotes);
                 req.setAttribute("userName", user.getNom());
-                req.getRequestDispatcher("/WEB-INF/views/dashboard-chef.jsp").forward(req, resp);
+                req.getRequestDispatcher("/WEB-INF/views/dashboard.jsp").forward(req, resp);
 
             } else if (Constants.ROLE_ENSEIGNANT.equals(role)) {
                 // Teacher - show classes and notes
                 String filiere = user.getFiliere();
                 req.setAttribute("userName", user.getNom());
                 req.setAttribute("filiere", filiere);
-                req.getRequestDispatcher("/WEB-INF/views/dashboard-enseignant.jsp").forward(req, resp);
+                req.getRequestDispatcher("/WEB-INF/views/dashboard.jsp").forward(req, resp);
 
             } else if (Constants.ROLE_ETUDIANT.equals(role)) {
                 // Student - show personal info
@@ -59,7 +57,7 @@ public class DashboardServlet extends HttpServlet {
                     req.setAttribute("etudiant", etudiant);
                 }
                 req.setAttribute("userName", user.getNom());
-                req.getRequestDispatcher("/WEB-INF/views/dashboard-etudiant.jsp").forward(req, resp);
+                req.getRequestDispatcher("/WEB-INF/views/dashboard.jsp").forward(req, resp);
             }
         } catch (SQLException e) {
             req.setAttribute("error", "Erreur lors du chargement du tableau de bord: " + e.getMessage());

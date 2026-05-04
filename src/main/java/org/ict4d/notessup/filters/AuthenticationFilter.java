@@ -19,6 +19,8 @@ public class AuthenticationFilter implements Filter {
     private static final String[] PUBLIC_PATHS = {
             "/login",
             "/assets/",
+            "/css/",
+            "/js/",
             "/api/auth/login",
             "/hello-servlet"
     };

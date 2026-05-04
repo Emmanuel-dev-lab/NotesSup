@@ -141,7 +141,7 @@ public class StatistiquesServlet extends HttpServlet {
             req.setAttribute("anneeAcademique", anneeAcademique != null ? anneeAcademique : "2024/2025");
             req.setAttribute("filiere", filiere);
 
-            req.getRequestDispatcher("/WEB-INF/views/statistiques.jsp").forward(req, resp);
+            req.getRequestDispatcher("/WEB-INF/views/statistiques/index.jsp").forward(req, resp);
 
         } catch (SQLException e) {
             req.setAttribute("error", "Erreur: " + e.getMessage());

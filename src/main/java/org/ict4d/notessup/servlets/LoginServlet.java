@@ -1,7 +1,6 @@
 package org.ict4d.notessup.servlets;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -12,7 +11,6 @@ import org.ict4d.notessup.utils.Constants;
 import java.io.IOException;
 import java.sql.SQLException;
 
-@WebServlet("/login")
 public class LoginServlet extends HttpServlet {
     private final AuthService authService = new AuthService();
 

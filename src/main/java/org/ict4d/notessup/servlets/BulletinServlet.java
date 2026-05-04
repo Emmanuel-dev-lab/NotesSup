@@ -12,7 +12,6 @@ import org.ict4d.notessup.models.User;
 import org.ict4d.notessup.models.Etudiant;
 import org.ict4d.notessup.services.PDFService;
 import org.ict4d.notessup.utils.Constants;
-import com.itextpdf.text.DocumentException;
 import java.io.IOException;
 import java.sql.SQLException;
 
@@ -96,7 +95,7 @@ public class BulletinServlet extends HttpServlet {
             } catch (ServletException se) {
                 resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             }
-        } catch (DocumentException e) {
+        } catch (RuntimeException e) {
             req.setAttribute("error", "Erreur lors de la generation du PDF: " + e.getMessage());
             try {
                 req.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(req, resp);

@@ -1,9 +1,18 @@
 package org.ict4d.notessup.services;
 
-import com.itextpdf.text.*;
-import com.itextpdf.text.pdf.PdfWriter;
-import com.itextpdf.text.pdf.PdfPTable;
-import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.element.Table;
+import com.itextpdf.layout.element.Cell;
+import com.itextpdf.layout.properties.TextAlignment;
+import com.itextpdf.layout.properties.UnitValue;
+import com.itextpdf.kernel.geom.PageSize;
+import com.itextpdf.kernel.colors.ColorConstants;
+import com.itextpdf.kernel.colors.DeviceRgb;
+import com.itextpdf.kernel.colors.Color;
+
 import org.ict4d.notessup.dao.EtudiantDAO;
 import org.ict4d.notessup.dao.NoteDAO;
 import org.ict4d.notessup.dao.MatiereDAO;
@@ -17,7 +26,7 @@ import java.util.List;
 
 /**
  * Service pour générer des bulletins au format PDF.
- * Utilise iText 5 pour créer les documents PDF.
+ * Utilise iText 8 pour créer les documents PDF.
  */
 public class PDFService {
     private final EtudiantDAO etudiantDAO;
@@ -39,21 +48,22 @@ public class PDFService {
      * @param anneeAcademique L'année académique (ex: 2023/2024)
      * @return Un tableau de bytes contenant le PDF
      * @throws SQLException Si une erreur de base de données se produit
-     * @throws DocumentException Si une erreur lors de la création du PDF se produit
      */
     public byte[] generateBulletinPDF(Long etudiantId, String session, String anneeAcademique)
-            throws SQLException, DocumentException {
+            throws SQLException {
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        Document document = new Document(PageSize.A4, 20, 20, 20, 20);
-        PdfWriter.getInstance(document, baos);
-        document.open();
+        PdfWriter writer = new PdfWriter(baos);
+        PdfDocument pdf = new PdfDocument(writer);
+        pdf.setDefaultPageSize(PageSize.A4);
+        Document document = new Document(pdf);
+        document.setMargins(20, 20, 20, 20);
 
         // Récupérer les informations de l'étudiant
         Etudiant etudiant = etudiantDAO.findById(etudiantId);
         if (etudiant == null) {
             document.close();
-            throw new DocumentException("Étudiant non trouvé");
+            throw new RuntimeException("Étudiant non trouvé");
         }
 
         // En-tête du document
@@ -72,24 +82,23 @@ public class PDFService {
     /**
      * Ajoute l'en-tête du bulletin (titre, infos étudiant, session).
      */
-    private void addHeader(Document document, Etudiant etudiant, String session, String anneeAcademique)
-            throws DocumentException {
+    private void addHeader(Document document, Etudiant etudiant, String session, String anneeAcademique) {
 
         // Titre
-        Font titleFont = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD);
-        Paragraph title = new Paragraph("BULLETIN DE NOTES", titleFont);
-        title.setAlignment(Element.ALIGN_CENTER);
+        Paragraph title = new Paragraph("BULLETIN DE NOTES")
+                .setFontSize(16)
+                .setBold()
+                .setTextAlignment(TextAlignment.CENTER);
         document.add(title);
 
         document.add(new Paragraph(" "));
 
         // Infos étudiant
-        Font normalFont = new Font(Font.FontFamily.HELVETICA, 11);
-        document.add(new Paragraph("Matricule: " + etudiant.getMatricule(), normalFont));
-        document.add(new Paragraph("Nom: " + etudiant.getNom() + " " + etudiant.getPrenom(), normalFont));
-        document.add(new Paragraph("Filière: " + etudiant.getFiliere(), normalFont));
-        document.add(new Paragraph("Année d'étude: " + etudiant.getAnnee(), normalFont));
-        document.add(new Paragraph("Session: " + session + " - Année académique: " + anneeAcademique, normalFont));
+        document.add(new Paragraph("Matricule: " + etudiant.getMatricule()).setFontSize(11));
+        document.add(new Paragraph("Nom: " + etudiant.getNom() + " " + etudiant.getPrenom()).setFontSize(11));
+        document.add(new Paragraph("Filière: " + etudiant.getFiliere()).setFontSize(11));
+        document.add(new Paragraph("Année d'étude: " + etudiant.getAnnee()).setFontSize(11));
+        document.add(new Paragraph("Session: " + session + " - Année académique: " + anneeAcademique).setFontSize(11));
 
         document.add(new Paragraph(" "));
     }
@@ -98,41 +107,35 @@ public class PDFService {
      * Ajoute le tableau des notes.
      */
     private void addNotesTable(Document document, Long etudiantId, String session, String anneeAcademique)
-            throws SQLException, DocumentException {
+            throws SQLException {
 
-        PdfPTable table = new PdfPTable(6);
-        table.setWidthPercentage(100);
         float[] columnWidths = {20, 25, 12, 12, 12, 19};
-        table.setWidths(columnWidths);
+        Table table = new Table(UnitValue.createPercentArray(columnWidths));
+        table.setWidth(UnitValue.createPercentValue(100));
 
         // En-têtes du tableau
-        Font headerFont = new Font(Font.FontFamily.HELVETICA, 11, Font.BOLD);
-        headerFont.setColor(BaseColor.WHITE);
-
-        addTableHeader(table, "Matière", headerFont);
-        addTableHeader(table, "Code", headerFont);
-        addTableHeader(table, "CC", headerFont);
-        addTableHeader(table, "Examen", headerFont);
-        addTableHeader(table, "Finale", headerFont);
-        addTableHeader(table, "Mention", headerFont);
+        addTableHeader(table, "Matière");
+        addTableHeader(table, "Code");
+        addTableHeader(table, "CC");
+        addTableHeader(table, "Examen");
+        addTableHeader(table, "Finale");
+        addTableHeader(table, "Mention");
 
         // Données des notes
         List<Note> notes = noteDAO.findByEtudiant(etudiantId, 100, 0);
-
-        Font dataFont = new Font(Font.FontFamily.HELVETICA, 10);
 
         for (Note note : notes) {
             if (session.equals(note.getSession()) && anneeAcademique.equals(note.getAnneeAcademique())) {
                 Matiere matiere = matiereDAO.findById(note.getMatiereId());
                 if (matiere != null) {
-                    addTableCell(table, matiere.getIntitule(), dataFont);
-                    addTableCell(table, matiere.getCode(), dataFont);
-                    addTableCell(table, formatNote(note.getNoteCC()), dataFont);
-                    addTableCell(table, formatNote(note.getNoteExam()), dataFont);
-                    addTableCell(table, formatNote(note.getNoteFinale()), dataFont);
+                    addTableCell(table, matiere.getIntitule());
+                    addTableCell(table, matiere.getCode());
+                    addTableCell(table, formatNote(note.getNoteCC()));
+                    addTableCell(table, formatNote(note.getNoteExam()));
+                    addTableCell(table, formatNote(note.getNoteFinale()));
 
                     String mention = noteService.getMention(note.getNoteFinale());
-                    addTableCell(table, mention, dataFont);
+                    addTableCell(table, mention);
                 }
             }
         }
@@ -145,45 +148,45 @@ public class PDFService {
      * Ajoute le résumé académique (moyenne, taux de réussite, situation).
      */
     private void addSummary(Document document, Long etudiantId, String session, String anneeAcademique)
-            throws SQLException, DocumentException {
+            throws SQLException {
 
-        Font summaryTitleFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
-        Font summaryFont = new Font(Font.FontFamily.HELVETICA, 11);
-
-        document.add(new Paragraph("RÉSUMÉ ACADÉMIQUE", summaryTitleFont));
+        document.add(new Paragraph("RÉSUMÉ ACADÉMIQUE").setFontSize(12).setBold());
 
         BigDecimal moyennePonderee = noteService.calcMoyennePonderee(etudiantId, session, anneeAcademique);
         BigDecimal tauxReussite = noteService.calcTauxReussite(etudiantId, session, anneeAcademique);
 
-        document.add(new Paragraph("Moyenne générale: " + moyennePonderee.toString(), summaryFont));
-        document.add(new Paragraph("Taux de réussite: " + tauxReussite.toString() + "%", summaryFont));
+        document.add(new Paragraph("Moyenne générale: " + moyennePonderee.toString()).setFontSize(11));
+        document.add(new Paragraph("Taux de réussite: " + tauxReussite.toString() + "%").setFontSize(11));
 
         String situation = (moyennePonderee.compareTo(new BigDecimal("10")) >= 0) ? "ADMIS" : "NON ADMIS";
-        Font situationFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
+        Paragraph situationPara = new Paragraph("Situation: " + situation).setFontSize(12).setBold();
+        
         if ("ADMIS".equals(situation)) {
-            situationFont.setColor(BaseColor.GREEN);
+            situationPara.setFontColor(ColorConstants.GREEN);
         } else {
-            situationFont.setColor(BaseColor.RED);
+            situationPara.setFontColor(ColorConstants.RED);
         }
-        document.add(new Paragraph("Situation: " + situation, situationFont));
+        document.add(situationPara);
     }
 
     /**
      * Ajoute une cellule d'en-tête au tableau.
      */
-    private void addTableHeader(PdfPTable table, String text, Font font) {
-        PdfPCell cell = new PdfPCell(new Phrase(text, font));
-        cell.setBackgroundColor(new BaseColor(44, 62, 80));
-        cell.setPadding(8);
-        table.addCell(cell);
+    private void addTableHeader(Table table, String text) {
+        Cell cell = new Cell()
+                .add(new Paragraph(text).setBold().setFontColor(ColorConstants.WHITE))
+                .setBackgroundColor(new DeviceRgb(44, 62, 80))
+                .setPadding(8);
+        table.addHeaderCell(cell);
     }
 
     /**
      * Ajoute une cellule de données au tableau.
      */
-    private void addTableCell(PdfPTable table, String text, Font font) {
-        PdfPCell cell = new PdfPCell(new Phrase(text != null ? text : "-", font));
-        cell.setPadding(5);
+    private void addTableCell(Table table, String text) {
+        Cell cell = new Cell()
+                .add(new Paragraph(text != null ? text : "-").setFontSize(10))
+                .setPadding(5);
         table.addCell(cell);
     }
 

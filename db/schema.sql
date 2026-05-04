@@ -62,11 +62,11 @@ CREATE TABLE `deliberation` (
 ) ENGINE=InnoDB;
 
 -- Users demo (BCrypt hashed "root123" with salt=10)
--- Hash: $2a$10$lFNhzO2pHADEDMpLnkRfCu3pnWh.QgwW9CzWW1xQiQPeW2r0qPBZG
+-- Hash: $2a$10$7UHsBiwjnzeNKmW7Lpq0ZOCLlDxHEm069aDe.oCGEK.cFlsxEHppe
 INSERT INTO `user` (login, password, role, nom, filiere) VALUES
-('chef', '$2a$10$lFNhzO2pHADEDMpLnkRfCu3pnWh.QgwW9CzWW1xQiQPeW2r0qPBZG', 'CHEF_DEPT', 'Chef Département', 'Informatique'),
-('prof1', '$2a$10$lFNhzO2pHADEDMpLnkRfCu3pnWh.QgwW9CzWW1xQiQPeW2r0qPBZG', 'ENSEIGNANT', 'Prof Dupont', 'Informatique'),
-('etud1', '$2a$10$lFNhzO2pHADEDMpLnkRfCu3pnWh.QgwW9CzWW1xQiQPeW2r0qPBZG', 'ETUDIANT', 'Etudiant Un', 'Informatique');
+('chef', '$2a$10$7UHsBiwjnzeNKmW7Lpq0ZOCLlDxHEm069aDe.oCGEK.cFlsxEHppe', 'CHEF_DEPT', 'Chef Département', 'Informatique'),
+('prof1', '$2a$10$7UHsBiwjnzeNKmW7Lpq0ZOCLlDxHEm069aDe.oCGEK.cFlsxEHppe', 'ENSEIGNANT', 'Prof Dupont', 'Informatique'),
+('etud1', '$2a$10$7UHsBiwjnzeNKmW7Lpq0ZOCLlDxHEm069aDe.oCGEK.cFlsxEHppe', 'ETUDIANT', 'Etudiant Un', 'Informatique');
 
 -- Étudiants
 INSERT INTO `etudiant` (matricule, nom, prenom, filiere, annee, telephone) VALUES

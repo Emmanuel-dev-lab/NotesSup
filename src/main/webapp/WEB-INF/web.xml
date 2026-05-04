@@ -27,7 +27,6 @@
         <filter-name>SecurityHeaderFilter</filter-name>
         <url-pattern>/*</url-pattern>
         <dispatcher>REQUEST</dispatcher>
-        <dispatcher>FORWARD</dispatcher>
     </filter-mapping>
 
     <!-- Authentication Filter -->
@@ -39,7 +38,6 @@
         <filter-name>AuthenticationFilter</filter-name>
         <url-pattern>/*</url-pattern>
         <dispatcher>REQUEST</dispatcher>
-        <dispatcher>FORWARD</dispatcher>
     </filter-mapping>
 
     <!-- ===== SERVLET DEFINITIONS ===== -->
