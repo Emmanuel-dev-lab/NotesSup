@@ -40,8 +40,8 @@ public class UserServlet extends HttpServlet {
                 req.getRequestDispatcher("/WEB-INF/views/users/form.jsp").forward(req, resp);
             } else if ("edit".equals(action)) {
                 String id = req.getParameter("id");
-                User user = userDAO.findById(Long.parseLong(id));
-                req.setAttribute("user", user);
+                User targetUser = userDAO.findById(Long.parseLong(id));
+                req.setAttribute("targetUser", targetUser);
                 req.getRequestDispatcher("/WEB-INF/views/users/form.jsp").forward(req, resp);
             } else {
                 int pageNum = page != null ? Integer.parseInt(page) : 1;

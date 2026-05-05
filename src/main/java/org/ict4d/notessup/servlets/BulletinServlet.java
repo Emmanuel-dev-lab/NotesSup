@@ -8,30 +8,56 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.ict4d.notessup.dao.DeliberationDAO;
 import org.ict4d.notessup.dao.EtudiantDAO;
+import org.ict4d.notessup.dao.NoteDAO;
 import org.ict4d.notessup.models.User;
 import org.ict4d.notessup.models.Etudiant;
+import org.ict4d.notessup.models.Note;
+import org.ict4d.notessup.models.Deliberation;
 import org.ict4d.notessup.services.PDFService;
+import org.ict4d.notessup.services.NoteService;
 import org.ict4d.notessup.utils.Constants;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.Optional;
 
 public class BulletinServlet extends HttpServlet {
     private final PDFService pdfService = new PDFService();
     private final DeliberationDAO deliberationDAO = new DeliberationDAO();
     private final EtudiantDAO etudiantDAO = new EtudiantDAO();
+    private final NoteDAO noteDAO = new NoteDAO();
+    private final NoteService noteService = new NoteService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute(Constants.SESSION_USER) == null) {
+            resp.sendRedirect(req.getContextPath() + "/login");
+            return;
+        }
+        
         String role = (String) session.getAttribute(Constants.SESSION_ROLE);
         User user = (User) session.getAttribute(Constants.SESSION_USER);
 
-        String etudiantId = req.getParameter("etudiant");
+        String etudiantId = req.getParameter("etudiantId") != null ? req.getParameter("etudiantId") : req.getParameter("etudiant");
         String sessionParam = req.getParameter("session");
         String anneeAcademique = req.getParameter("annee");
         String format = req.getParameter("format");
 
         try {
+            // When accessed without parameters (e.g. from sidebar), show the select form
+            if (etudiantId == null || etudiantId.trim().isEmpty() || sessionParam == null || anneeAcademique == null) {
+                if (Constants.ROLE_CHEF.equals(role) || Constants.ROLE_ENSEIGNANT.equals(role)) {
+                    req.setAttribute("etudiants", etudiantDAO.findAll(1000, 0));
+                } else if (Constants.ROLE_ETUDIANT.equals(role)) {
+                    req.setAttribute("etudiants", List.of(etudiantDAO.findById(user.getEtudiantId())));
+                    req.setAttribute("selectedEtudiantId", user.getEtudiantId().toString());
+                }
+                req.getRequestDispatcher("/WEB-INF/views/bulletins/index.jsp").forward(req, resp);
+                return;
+            }
+
             // Verify access rights based on role
             if (Constants.ROLE_CHEF.equals(role)) {
                 // CHEF can view all etudiants bulletins
@@ -54,19 +80,17 @@ public class BulletinServlet extends HttpServlet {
             }
 
             // Check if deliberation is published for ETUDIANT
-            var deliberation = deliberationDAO.findAll(1, 0).stream()
+            Optional<Deliberation> deliberation = deliberationDAO.findAll(100, 0).stream()
                     .filter(d -> sessionParam.equals(d.getSession()) && anneeAcademique.equals(d.getAnneeAcademique()))
                     .findFirst();
 
             if (deliberation.isEmpty() || !deliberation.get().getPubliee()) {
-                // For ETUDIANT, return 403 if not published; for others, just show unavailable
                 if (Constants.ROLE_ETUDIANT.equals(role)) {
-                    resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Bulletin not published");
+                    req.setAttribute("locked", true);
+                    req.getRequestDispatcher("/WEB-INF/views/bulletins/index.jsp").forward(req, resp);
                     return;
                 } else {
-                    req.setAttribute("error", "Les resultats de cette session ne sont pas encore publies");
-                    req.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(req, resp);
-                    return;
+                    req.setAttribute("error", "Les résultats de cette session ne sont pas encore publiés ou la délibération n'existe pas.");
                 }
             }
 
@@ -82,26 +106,50 @@ public class BulletinServlet extends HttpServlet {
                 resp.getOutputStream().flush();
 
             } else {
-                // Display bulletin in HTML
-                req.setAttribute("etudiantId", etudiantId);
-                req.setAttribute("session", sessionParam);
+                // Prepare HTML view data
+                Etudiant etudiant = etudiantDAO.findById(Long.parseLong(etudiantId));
+                List<Note> allNotes = noteDAO.findAll(1000, 0); // Temporary solution, NoteDAO lacks findByEtudiantId
+                List<Note> etudiantNotes = allNotes.stream()
+                        .filter(n -> n.getEtudiantId() != null && n.getEtudiantId().equals(etudiant.getId()) 
+                                  && sessionParam.equals(n.getSession())
+                                  && anneeAcademique.equals(n.getAnneeAcademique()))
+                        .toList();
+                
+                noteService.populateNoteRelations(etudiantNotes);
+
+                BigDecimal totalPoints = BigDecimal.ZERO;
+                BigDecimal totalCoeff = BigDecimal.ZERO;
+                for (Note n : etudiantNotes) {
+                    if (n.getNoteFinale() != null && n.getMatiere() != null && n.getMatiere().getCoefficient() > 0) {
+                        BigDecimal coeff = new BigDecimal(n.getMatiere().getCoefficient());
+                        totalPoints = totalPoints.add(n.getNoteFinale().multiply(coeff));
+                        totalCoeff = totalCoeff.add(coeff);
+                    }
+                }
+                
+                BigDecimal moyenneGenerale = BigDecimal.ZERO;
+                if (totalCoeff.compareTo(BigDecimal.ZERO) > 0) {
+                    moyenneGenerale = totalPoints.divide(totalCoeff, 2, java.math.RoundingMode.HALF_UP);
+                }
+
+                req.setAttribute("etudiants", etudiantDAO.findAll(1000, 0));
+                req.setAttribute("selectedEtudiantId", etudiantId);
+                req.setAttribute("selectedSession", sessionParam);
                 req.setAttribute("anneeAcademique", anneeAcademique);
-                req.getRequestDispatcher("/WEB-INF/views/bulletin.jsp").forward(req, resp);
+                req.setAttribute("etudiant", etudiant);
+                req.setAttribute("notes", etudiantNotes);
+                req.setAttribute("totalCoefficients", totalCoeff);
+                req.setAttribute("totalPoints", totalPoints);
+                req.setAttribute("moyenneGenerale", moyenneGenerale);
+
+                req.getRequestDispatcher("/WEB-INF/views/bulletins/index.jsp").forward(req, resp);
             }
         } catch (SQLException e) {
-            req.setAttribute("error", "Erreur base de donnees: " + e.getMessage());
-            try {
-                req.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(req, resp);
-            } catch (ServletException se) {
-                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            }
-        } catch (RuntimeException e) {
-            req.setAttribute("error", "Erreur lors de la generation du PDF: " + e.getMessage());
-            try {
-                req.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(req, resp);
-            } catch (ServletException se) {
-                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            }
+            req.setAttribute("error", "Erreur base de données: " + e.getMessage());
+            req.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(req, resp);
+        } catch (Exception e) {
+            req.setAttribute("error", "Erreur lors de la génération du bulletin: " + e.getMessage());
+            req.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(req, resp);
         }
     }
 }

@@ -187,6 +187,7 @@
                     <!-- Sélecteur élève (chef/enseignant) -->
                     <c:if test="${sessionScope.user.role != 'ETUDIANT'}">
                         <form method="GET" action="${pageContext.request.contextPath}/bulletins" style="display:flex; gap:8px;">
+                            <input type="hidden" name="annee" value="2024-2025" />
                             <select name="etudiantId" style="padding:9px 12px; border-radius:8px; border:1.5px solid var(--border-medium); font-family:var(--font-base);">
                                 <option value="">— Sélectionner un étudiant —</option>
                                 <c:forEach var="e" items="${etudiants}">
@@ -202,7 +203,7 @@
                     </c:if>
                     <c:if test="${etudiant != null}">
                         <button class="btn btn-ghost" onclick="window.print();">🖨 Imprimer</button>
-                        <a href="${pageContext.request.contextPath}/bulletins?format=pdf${selectedEtudiantId != null ? '&etudiantId='.concat(selectedEtudiantId) : ''}"
+                        <a href="${pageContext.request.contextPath}/bulletins?format=pdf${selectedEtudiantId != null ? '&etudiantId='.concat(selectedEtudiantId) : ''}&session=${selectedSession}&annee=${anneeAcademique}"
                            class="btn btn-primary">↓ Télécharger PDF</a>
                     </c:if>
                 </div>

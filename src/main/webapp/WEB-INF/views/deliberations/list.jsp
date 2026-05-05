@@ -141,7 +141,7 @@
 
                                     <c:if test="${delib.deliberation.publiee && delib.deliberation.datePublication != null}">
                                         <div class="delib-date">
-                                            Publié le <fmt:formatDate value="${delib.deliberation.datePublication}" pattern="dd/MM/yyyy"/>
+                                            Publié le <fmt:formatDate value="${delib.deliberation.legacyDatePublication}" pattern="dd/MM/yyyy"/>
                                             <c:if test="${delib.deliberation.publiePar != null}"> · par ${delib.deliberation.publiePar}</c:if>
                                         </div>
                                     </c:if>

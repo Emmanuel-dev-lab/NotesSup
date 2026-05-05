@@ -34,4 +34,9 @@ public class Deliberation {
 
     public String getPubliePar() { return publiePar; }
     public void setPubliePar(String publiePar) { this.publiePar = publiePar; }
+
+    public java.util.Date getLegacyDatePublication() {
+        if (datePublication == null) return null;
+        return java.sql.Date.valueOf(datePublication);
+    }
 }
