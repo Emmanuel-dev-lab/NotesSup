@@ -72,8 +72,8 @@
                                 <h3>Résultats par filière</h3>
                             </div>
                             <c:choose>
-                                <c:when test="${statsFilieres != null && !statsFilieres.isEmpty()}">
-                                    <c:forEach var="stat" items="${statsFilieres}">
+                                <c:when test="${filiereStats != null && !filiereStats.isEmpty()}">
+                                    <c:forEach var="stat" items="${filiereStats}">
                                         <div style="margin-bottom: 16px;">
                                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                                                 <span style="font-size:13.5px; font-weight:600;">${stat.filiere}</span>
@@ -270,9 +270,21 @@
                 <%-- ══ ÉTUDIANT ══ --%>
                 <c:when test="${sessionScope.user.role == 'ETUDIANT'}">
                     <div class="page-header">
-                        <div>
-                            <h1>Mon tableau de bord</h1>
-                            <p class="subtitle">Bienvenue, ${sessionScope.user.nom}</p>
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <div class="avatar-sm" style="width: 64px; height: 64px;">
+                                <c:choose>
+                                    <c:when test="${etudiant.photoPath != null}">
+                                        <img src="${pageContext.request.contextPath}/${etudiant.photoPath}" alt="Photo">
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div class="avatar-placeholder" style="font-size: 24px;">${sessionScope.user.nom.substring(0,1)}</div>
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
+                            <div>
+                                <h1>Mon tableau de bord</h1>
+                                <p class="subtitle">Bienvenue, ${sessionScope.user.nom} (${etudiant.matricule})</p>
+                            </div>
                         </div>
                         <a href="${pageContext.request.contextPath}/bulletins" class="btn btn-ghost">Mon bulletin</a>
                     </div>

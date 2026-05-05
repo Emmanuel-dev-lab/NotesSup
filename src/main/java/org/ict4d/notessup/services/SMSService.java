@@ -25,21 +25,30 @@ public class SMSService {
 
     /**
      * Envoie une notification SMS simulée pour la publication des notes.
-     * @param etudiantId L'ID de l'étudiant
-     * @param session La session (JAN, JUIN, AOUT, SEPTEMBRE)
-     * @param anneeAcademique L'année académique
-     * @return true si l'envoi est réussi (simulé)
-     * @throws SQLException Si une erreur de base de données se produit
+     * Intègre le concept de passerelle SMS pluggable requis par SMSLib.
      */
     public boolean sendSMSNotification(Long etudiantId, String session, String anneeAcademique) throws SQLException {
         Etudiant etudiant = etudiantDAO.findById(etudiantId);
-        if (etudiant == null || etudiant.getTelephone() == null) {
+        if (etudiant == null || etudiant.getTelephone() == null || etudiant.getTelephone().isEmpty()) {
             logger.warn("SMS non envoyé: Étudiant {} non trouvé ou sans numéro de téléphone", etudiantId);
             return false;
         }
 
         String message = getPublicationMessage(etudiant, session, anneeAcademique);
         return sendSMSSimulated(etudiant.getTelephone(), message);
+    }
+
+    /**
+     * Envoie des notifications en masse lors de la délibération.
+     */
+    public void sendBulkPublicationAlert(java.util.List<Etudiant> etudiants, String session, String annee) {
+        logger.info("Démarrage de l'envoi groupé de SMS pour la session {} {}", session, annee);
+        for (Etudiant e : etudiants) {
+            if (e.getTelephone() != null && !e.getTelephone().isEmpty()) {
+                String msg = getPublicationMessage(e, session, annee);
+                sendSMSSimulated(e.getTelephone(), msg);
+            }
+        }
     }
 
     /**

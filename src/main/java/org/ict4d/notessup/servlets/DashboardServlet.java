@@ -40,6 +40,7 @@ public class DashboardServlet extends HttpServlet {
                 req.setAttribute("totalEtudiants", totalEtudiants);
                 req.setAttribute("totalMatieres", totalMatieres);
                 req.setAttribute("totalNotes", totalNotes);
+                req.setAttribute("filiereStats", noteDAO.getStatsPerFiliere("Normale", "2025-2026"));
                 req.setAttribute("userName", user.getNom());
                 req.getRequestDispatcher("/WEB-INF/views/dashboard.jsp").forward(req, resp);
 

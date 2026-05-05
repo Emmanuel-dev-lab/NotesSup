@@ -63,6 +63,7 @@
                     <table>
                         <thead>
                             <tr>
+                                <th style="width: 50px;"></th> <!-- Photo -->
                                 <th>Matricule</th>
                                 <th>Nom &amp; Prénom</th>
                                 <th>Filière</th>
@@ -78,6 +79,18 @@
                                 <c:when test="${etudiants != null && etudiants.size() > 0}">
                                     <c:forEach var="e" items="${etudiants}">
                                         <tr>
+                                            <td>
+                                                <div class="avatar-sm">
+                                                    <c:choose>
+                                                        <c:when test="${e.photoPath != null}">
+                                                            <img src="${pageContext.request.contextPath}/${e.photoPath}" alt="Photo">
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <div class="avatar-placeholder">${e.nom.substring(0,1)}</div>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </div>
+                                            </td>
                                             <td class="td-mono" style="color:var(--accent-blue); font-weight:500;">${e.matricule}</td>
                                             <td class="td-bold">${e.nom} ${e.prenom}</td>
                                             <td><span class="badge badge-info">${e.filiere}</span></td>

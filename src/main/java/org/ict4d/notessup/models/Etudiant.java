@@ -8,6 +8,7 @@ public class Etudiant {
     private String filiere;
     private Integer annee;
     private String telephone;
+    private String photoPath;
 
     public Etudiant() {}
 
@@ -32,4 +33,7 @@ public class Etudiant {
 
     public String getTelephone() { return telephone; }
     public void setTelephone(String telephone) { this.telephone = telephone; }
+
+    public String getPhotoPath() { return photoPath; }
+    public void setPhotoPath(String photoPath) { this.photoPath = photoPath; }
 }

@@ -128,7 +128,7 @@ public class EtudiantDAO extends BaseDAO<Etudiant> {
 
     @Override
     public void insert(Etudiant etudiant) throws SQLException {
-        String sql = "INSERT INTO etudiant (matricule, nom, prenom, filiere, annee, telephone) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO etudiant (matricule, nom, prenom, filiere, annee, telephone, photo_path) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, etudiant.getMatricule());
@@ -137,6 +137,7 @@ public class EtudiantDAO extends BaseDAO<Etudiant> {
             pstmt.setString(4, etudiant.getFiliere());
             pstmt.setInt(5, etudiant.getAnnee());
             pstmt.setString(6, etudiant.getTelephone());
+            pstmt.setString(7, etudiant.getPhotoPath());
             pstmt.executeUpdate();
             
             try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
@@ -149,7 +150,7 @@ public class EtudiantDAO extends BaseDAO<Etudiant> {
 
     @Override
     public void update(Etudiant etudiant) throws SQLException {
-        String sql = "UPDATE etudiant SET nom = ?, prenom = ?, filiere = ?, annee = ?, telephone = ? WHERE id = ?";
+        String sql = "UPDATE etudiant SET nom = ?, prenom = ?, filiere = ?, annee = ?, telephone = ?, photo_path = ? WHERE id = ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, etudiant.getNom());
@@ -157,7 +158,8 @@ public class EtudiantDAO extends BaseDAO<Etudiant> {
             pstmt.setString(3, etudiant.getFiliere());
             pstmt.setInt(4, etudiant.getAnnee());
             pstmt.setString(5, etudiant.getTelephone());
-            pstmt.setLong(6, etudiant.getId());
+            pstmt.setString(6, etudiant.getPhotoPath());
+            pstmt.setLong(7, etudiant.getId());
             pstmt.executeUpdate();
         }
     }
@@ -181,6 +183,7 @@ public class EtudiantDAO extends BaseDAO<Etudiant> {
         etudiant.setFiliere(rs.getString("filiere"));
         etudiant.setAnnee(rs.getInt("annee"));
         etudiant.setTelephone(rs.getString("telephone"));
+        etudiant.setPhotoPath(rs.getString("photo_path"));
         return etudiant;
     }
 }

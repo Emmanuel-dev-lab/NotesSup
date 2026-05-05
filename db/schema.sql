@@ -39,6 +39,7 @@ CREATE TABLE `etudiant` (
   `filiere`     VARCHAR(80)  NOT NULL,
   `annee`       INT          NOT NULL CHECK (annee BETWEEN 1 AND 5),
   `telephone`   VARCHAR(20),
+  `photo_path`  VARCHAR(255),
   `created_at`  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 

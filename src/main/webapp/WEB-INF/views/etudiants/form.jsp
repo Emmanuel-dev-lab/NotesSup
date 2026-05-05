@@ -28,7 +28,7 @@
                     <div class="alert alert-danger">${error}</div>
                 </c:if>
 
-                <form method="POST" action="${pageContext.request.contextPath}/etudiants">
+                <form method="POST" action="${pageContext.request.contextPath}/etudiants" enctype="multipart/form-data">
                     <input type="hidden" name="action" value="${etudiant != null ? 'update' : 'create'}">
                     <c:if test="${etudiant != null}">
                         <input type="hidden" name="id" value="${etudiant.id}">
@@ -78,6 +78,18 @@
                             <input type="tel" id="telephone" name="telephone"
                                    placeholder="Ex: +221 77 123 45 67"
                                    value="${etudiant != null ? etudiant.telephone : ''}">
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label for="photo">Photo de profil (Optionnel)</label>
+                            <input type="file" id="photo" name="photo" accept="image/*">
+                            <c:if test="${etudiant != null && etudiant.photoPath != null}">
+                                <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px;">
+                                    <img src="${pageContext.request.contextPath}/${etudiant.photoPath}" 
+                                         alt="Photo actuelle" 
+                                         style="width: 48px; height: 48px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border-color);">
+                                    <span class="subtitle">Photo actuelle</span>
+                                </div>
+                            </c:if>
                         </div>
                     </div>
 

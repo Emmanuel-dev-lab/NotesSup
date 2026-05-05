@@ -1,6 +1,7 @@
 package org.ict4d.notessup.dao;
 
 import org.ict4d.notessup.models.Note;
+import org.ict4d.notessup.models.FiliereStat;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -231,6 +232,32 @@ public class NoteDAO extends BaseDAO<Note> {
             }
         }
         return notes;
+    }
+
+    public List<FiliereStat> getStatsPerFiliere(String session, String annee) throws SQLException {
+        List<FiliereStat> stats = new ArrayList<>();
+        String sql = "SELECT e.filiere, COUNT(DISTINCT e.id) as nb_etudiants, AVG(n.note_finale) as moyenne_gl, " +
+                     "SUM(CASE WHEN n.note_finale >= 10 THEN 1 ELSE 0 END) * 100.0 / COUNT(*) as taux_reussite " +
+                     "FROM note n " +
+                     "JOIN etudiant e ON n.etudiant_id = e.id " +
+                     "WHERE n.session = ? AND n.annee_academique = ? " +
+                     "GROUP BY e.filiere";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, session);
+            pstmt.setString(2, annee);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    FiliereStat stat = new FiliereStat();
+                    stat.setFiliere(rs.getString("filiere"));
+                    stat.setNbEtudiants(rs.getInt("nb_etudiants"));
+                    stat.setMoyenne(rs.getBigDecimal("moyenne_gl"));
+                    stat.setTauxReussite(rs.getBigDecimal("taux_reussite"));
+                    stats.add(stat);
+                }
+            }
+        }
+        return stats;
     }
 
     private Note mapNote(ResultSet rs) throws SQLException {

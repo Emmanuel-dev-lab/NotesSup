@@ -25,6 +25,8 @@ public class AuthenticationFilter implements Filter {
             "/hello-servlet"
     };
 
+    // Public paths matching
+
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
         // Initialize filter
@@ -50,12 +52,55 @@ public class AuthenticationFilter implements Filter {
         // Check session for protected paths
         HttpSession session = httpRequest.getSession(false);
         if (session != null && session.getAttribute("user") != null) {
-            // Valid session exists
-            chain.doFilter(request, response);
+            // Valid session exists, now check role permissions
+            String role = (String) session.getAttribute("role");
+            
+            if (hasPermission(path, role, httpRequest.getQueryString())) {
+                chain.doFilter(request, response);
+            } else {
+                // Not authorized - redirect to 403 or home
+                httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "Accès refusé pour votre rôle");
+            }
         } else {
             // No valid session - redirect to login
             httpResponse.sendRedirect(contextPath + "/login");
         }
+    }
+
+    /**
+     * Role-based authorization check
+     */
+    private boolean hasPermission(String path, String role, String queryString) {
+        // CHEF_DEPT has access to everything
+        if ("CHEF_DEPT".equals(role)) {
+            return true;
+        }
+
+        // ENSEIGNANT access
+        if ("ENSEIGNANT".equals(role)) {
+            // Cannot access sensitive actions like adding/deleting students or publishing deliberations
+            if (path.startsWith("/etudiants") && queryString != null && 
+                (queryString.contains("action=add") || queryString.contains("action=edit") || queryString.contains("action=delete"))) {
+                return false;
+            }
+            if (path.startsWith("/deliberations") && queryString != null && 
+                (queryString.contains("action=add") || queryString.contains("action=publish"))) {
+                return false;
+            }
+            return true;
+        }
+
+        // ETUDIANT access
+        if ("ETUDIANT".equals(role)) {
+            // Restricted to their basic view pages
+            return path.equals("/dashboard") || 
+                   path.equals("/bulletins") || 
+                   path.startsWith("/assets/") ||
+                   path.startsWith("/css/") ||
+                   path.startsWith("/js/");
+        }
+
+        return false;
     }
 
     @Override

@@ -9,10 +9,19 @@ import jakarta.servlet.http.HttpSession;
 import org.ict4d.notessup.models.Etudiant;
 import org.ict4d.notessup.dao.EtudiantDAO;
 import org.ict4d.notessup.utils.Constants;
+import jakarta.servlet.annotation.MultipartConfig;
+import jakarta.servlet.http.Part;
+import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
+@MultipartConfig(
+    fileSizeThreshold = 1024 * 1024, // 1 MB
+    maxFileSize = 1024 * 1024 * 5,    // 5 MB
+    maxRequestSize = 1024 * 1024 * 10 // 10 MB
+)
 public class EtudiantServlet extends HttpServlet {
     private final EtudiantDAO etudiantDAO = new EtudiantDAO();
     private static final int PAGE_SIZE = Constants.DEFAULT_PAGE_SIZE;
@@ -99,6 +108,21 @@ public class EtudiantServlet extends HttpServlet {
                 etudiant.setAnnee(Integer.parseInt(req.getParameter("annee")));
                 etudiant.setTelephone(req.getParameter("telephone"));
 
+                Etudiant oldEtudiant = etudiantDAO.findById(etudiant.getId());
+                
+                // Handle Photo Upload
+                Part photoPart = req.getPart("photo");
+                if (photoPart != null && photoPart.getSize() > 0) {
+                    String fileName = UUID.randomUUID().toString() + "_" + photoPart.getSubmittedFileName();
+                    String uploadPath = getServletContext().getRealPath("/uploads/");
+                    File uploadDir = new File(uploadPath);
+                    if (!uploadDir.exists()) uploadDir.mkdir();
+                    photoPart.write(uploadPath + File.separator + fileName);
+                    etudiant.setPhotoPath("uploads/" + fileName);
+                } else if (oldEtudiant != null) {
+                    etudiant.setPhotoPath(oldEtudiant.getPhotoPath());
+                }
+
                 etudiantDAO.update(etudiant);
                 resp.sendRedirect(req.getContextPath() + "/etudiants");
 
@@ -112,6 +136,17 @@ public class EtudiantServlet extends HttpServlet {
                 etudiant.setFiliere(req.getParameter("filiere"));
                 etudiant.setAnnee(Integer.parseInt(req.getParameter("annee")));
                 etudiant.setTelephone(req.getParameter("telephone"));
+
+                // Handle Photo Upload
+                Part photoPart = req.getPart("photo");
+                if (photoPart != null && photoPart.getSize() > 0) {
+                    String fileName = UUID.randomUUID().toString() + "_" + photoPart.getSubmittedFileName();
+                    String uploadPath = getServletContext().getRealPath("/uploads/");
+                    File uploadDir = new File(uploadPath);
+                    if (!uploadDir.exists()) uploadDir.mkdir();
+                    photoPart.write(uploadPath + File.separator + fileName);
+                    etudiant.setPhotoPath("uploads/" + fileName);
+                }
 
                 etudiantDAO.insert(etudiant);
 
