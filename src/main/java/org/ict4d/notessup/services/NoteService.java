@@ -131,7 +131,7 @@ public class NoteService {
         if (totalCoefficients.compareTo(BigDecimal.ZERO) > 0) {
             return totalNotes.divide(totalCoefficients, 2, RoundingMode.HALF_UP);
         }
-        return BigDecimal.ZERO;
+        return null;
     }
 
     /**
@@ -144,7 +144,7 @@ public class NoteService {
      * @throws SQLException Si une erreur de base de données se produit
      */
     public BigDecimal calcMoyennePonderee(Long etudiantId, String session, String anneeAcademique) throws SQLException {
-        if (session == null || anneeAcademique == null) return BigDecimal.ZERO;
+        if (session == null || anneeAcademique == null) return null;
         List<Note> notes = noteDAO.findByEtudiantSessionAnnee(etudiantId, session, anneeAcademique);
         populateNoteRelations(notes);
         return calcMoyennePonderee(notes);

@@ -78,8 +78,10 @@ public class MatiereServlet extends HttpServlet {
                 req.setAttribute("currentPage", pageNum);
                 req.setAttribute("totalPages", totalPages);
                 req.setAttribute("pageSize", PAGE_SIZE);
+                req.setAttribute("totalCount", totalCount);
                 req.setAttribute("search", search);
-                req.setAttribute("filiere", filiere);
+                req.setAttribute("selectedFiliere", filiere);
+                req.setAttribute("filieres", Constants.FILIERES);
                 req.getRequestDispatcher("/WEB-INF/views/matieres/list.jsp").forward(req, resp);
             }
         } catch (SQLException e) {

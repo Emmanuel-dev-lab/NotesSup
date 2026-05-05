@@ -100,8 +100,8 @@
                                 <div class="form-group">
                                     <label for="annee">Année Académique *</label>
                                     <input type="text" id="annee" name="annee_academique"
-                                        value="${note != null ? note.anneeAcademique : '2025-2026'}"
-                                        placeholder="2025-2026" required>
+                                        value="${note != null ? note.anneeAcademique : '2023-2024'}"
+                                        placeholder="2023-2024" required>
                                 </div>
 
                                 <c:if test="${note != null && note.noteFinale != null}">

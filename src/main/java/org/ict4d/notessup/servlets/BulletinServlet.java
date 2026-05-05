@@ -137,11 +137,17 @@ public class BulletinServlet extends HttpServlet {
                 req.getRequestDispatcher("/WEB-INF/views/bulletins/index.jsp").forward(req, resp);
             }
         } catch (SQLException e) {
-            req.setAttribute("error", "Erreur base de données: " + e.getMessage());
-            req.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(req, resp);
+            e.printStackTrace();
+            if (!resp.isCommitted()) {
+                req.setAttribute("error", "Erreur base de données: " + e.getMessage());
+                req.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(req, resp);
+            }
         } catch (Exception e) {
-            req.setAttribute("error", "Erreur lors de la génération du bulletin: " + e.getMessage());
-            req.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(req, resp);
+            e.printStackTrace();
+            if (!resp.isCommitted()) {
+                req.setAttribute("error", "Erreur lors de la génération du bulletin: " + e.getMessage());
+                req.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(req, resp);
+            }
         }
     }
 }

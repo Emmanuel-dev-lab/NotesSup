@@ -114,11 +114,6 @@
                             <option value="${f}" ${selectedFiliere == f ? 'selected' : ''}>${f}</option>
                         </c:forEach>
                     </select>
-                    <select name="semestre">
-                        <option value="">Tous les semestres</option>
-                        <option value="1" ${selectedSemestre == '1' ? 'selected' : ''}>Semestre 1</option>
-                        <option value="2" ${selectedSemestre == '2' ? 'selected' : ''}>Semestre 2</option>
-                    </select>
                     <button type="submit" class="btn btn-ghost">Filtrer</button>
                 </div>
             </form>
@@ -164,6 +159,28 @@
                             </div>
                         </c:forEach>
                     </div>
+
+                    <!-- Pagination -->
+                    <c:if test="${totalPages > 1}">
+                        <div class="pagination" style="margin-top: 30px;">
+                            <c:if test="${currentPage > 1}">
+                                <a href="?page=${currentPage - 1}${not empty search ? '&search='.concat(search) : ''}${not empty selectedFiliere ? '&filiere='.concat(selectedFiliere) : ''}" 
+                                   class="btn btn-ghost">← Précédent</a>
+                            </c:if>
+                            
+                            <div class="pagination-pages">
+                                <c:forEach begin="1" end="${totalPages}" var="p">
+                                    <a href="?page=${p}${not empty search ? '&search='.concat(search) : ''}${not empty selectedFiliere ? '&filiere='.concat(selectedFiliere) : ''}" 
+                                       class="page-link ${p == currentPage ? 'active' : ''}">${p}</a>
+                                </c:forEach>
+                            </div>
+
+                            <c:if test="${currentPage < totalPages}">
+                                <a href="?page=${currentPage + 1}${not empty search ? '&search='.concat(search) : ''}${not empty selectedFiliere ? '&filiere='.concat(selectedFiliere) : ''}" 
+                                   class="btn btn-ghost">Suivant →</a>
+                            </c:if>
+                        </div>
+                    </c:if>
                 </c:when>
                 <c:otherwise>
                     <div class="card" style="text-align:center; padding:48px;">
