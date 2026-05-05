@@ -60,16 +60,23 @@ public class MatiereServlet extends HttpServlet {
                 int offset = (pageNum - 1) * PAGE_SIZE;
 
                 List<Matiere> matieres;
+                int totalCount = 0;
                 if (search != null && !search.isEmpty()) {
                     matieres = matiereDAO.search(search, PAGE_SIZE, offset);
+                    totalCount = matiereDAO.countSearch(search);
                 } else if (filiere != null && !filiere.isEmpty()) {
                     matieres = matiereDAO.findByFiliere(filiere, PAGE_SIZE, offset);
+                    totalCount = matiereDAO.countByFiliere(filiere);
                 } else {
                     matieres = matiereDAO.findAll(PAGE_SIZE, offset);
+                    totalCount = matiereDAO.count();
                 }
+
+                int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
 
                 req.setAttribute("matieres", matieres);
                 req.setAttribute("currentPage", pageNum);
+                req.setAttribute("totalPages", totalPages);
                 req.setAttribute("pageSize", PAGE_SIZE);
                 req.setAttribute("search", search);
                 req.setAttribute("filiere", filiere);

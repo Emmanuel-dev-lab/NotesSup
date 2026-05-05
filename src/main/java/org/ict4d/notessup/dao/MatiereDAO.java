@@ -63,6 +63,39 @@ public class MatiereDAO extends BaseDAO<Matiere> {
         return matieres;
     }
 
+    public int count() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM matiere";
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) return rs.getInt(1);
+        }
+        return 0;
+    }
+
+    public int countByFiliere(String filiere) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM matiere WHERE filiere = ?";
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, filiere);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
+    public int countSearch(String query) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM matiere WHERE code LIKE ? OR intitule LIKE ? OR enseignant LIKE ?";
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            String searchTerm = "%" + query + "%";
+            pstmt.setString(1, searchTerm);
+            pstmt.setString(2, searchTerm);
+            pstmt.setString(3, searchTerm);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
     @Override
     public Matiere findById(Long id) throws SQLException {
         String sql = "SELECT * FROM matiere WHERE id = ?";

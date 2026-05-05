@@ -27,6 +27,14 @@ public class EtudiantDAO extends BaseDAO<Etudiant> {
         return etudiants;
     }
 
+    public int count() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM etudiant";
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) return rs.getInt(1);
+        }
+        return 0;
+    }
+
     public List<Etudiant> findByFiliere(String filiere, int limit, int offset) throws SQLException {
         List<Etudiant> etudiants = new ArrayList<>();
         String sql = "SELECT * FROM etudiant WHERE filiere = ? ORDER BY nom LIMIT ? OFFSET ?";
@@ -42,6 +50,17 @@ public class EtudiantDAO extends BaseDAO<Etudiant> {
             }
         }
         return etudiants;
+    }
+
+    public int countByFiliere(String filiere) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM etudiant WHERE filiere = ?";
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, filiere);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        }
+        return 0;
     }
 
     public List<Etudiant> search(String query, int limit, int offset) throws SQLException {
@@ -62,6 +81,20 @@ public class EtudiantDAO extends BaseDAO<Etudiant> {
             }
         }
         return etudiants;
+    }
+
+    public int countSearch(String query) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM etudiant WHERE matricule LIKE ? OR nom LIKE ? OR prenom LIKE ?";
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            String searchTerm = "%" + query + "%";
+            pstmt.setString(1, searchTerm);
+            pstmt.setString(2, searchTerm);
+            pstmt.setString(3, searchTerm);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        }
+        return 0;
     }
 
     @Override

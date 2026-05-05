@@ -96,18 +96,25 @@ public class NoteServlet extends HttpServlet {
                 int offset = (pageNum - 1) * PAGE_SIZE;
 
                 List<Note> notes;
+                int totalCount = 0;
                 if (etudiantId != null && !etudiantId.isEmpty()) {
                     notes = noteDAO.findByEtudiant(Long.parseLong(etudiantId), PAGE_SIZE, offset);
+                    totalCount = noteDAO.countByEtudiant(Long.parseLong(etudiantId));
                 } else if (matiereId != null && !matiereId.isEmpty()) {
                     notes = noteDAO.findByMatiere(Long.parseLong(matiereId), PAGE_SIZE, offset);
+                    totalCount = noteDAO.countByMatiere(Long.parseLong(matiereId));
                 } else {
                     notes = noteDAO.findAll(PAGE_SIZE, offset);
+                    totalCount = noteDAO.count();
                 }
+                
+                int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
                 
                 noteService.populateNoteRelations(notes);
 
                 req.setAttribute("notes", notes);
                 req.setAttribute("currentPage", pageNum);
+                req.setAttribute("totalPages", totalPages);
                 req.setAttribute("pageSize", PAGE_SIZE);
                 req.setAttribute("etudiant", etudiantId);
                 req.setAttribute("matiere", matiereId);

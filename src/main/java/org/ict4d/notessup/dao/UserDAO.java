@@ -42,6 +42,14 @@ public class UserDAO extends BaseDAO<User> {
         return null;
     }
 
+    public int count() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM user";
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) return rs.getInt(1);
+        }
+        return 0;
+    }
+
     public List<User> search(String query, int limit, int offset) throws SQLException {
         List<User> users = new ArrayList<>();
         String sql = "SELECT * FROM user WHERE login LIKE ? OR nom LIKE ? OR role LIKE ? LIMIT ? OFFSET ?";
@@ -60,6 +68,20 @@ public class UserDAO extends BaseDAO<User> {
             }
         }
         return users;
+    }
+
+    public int countSearch(String query) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM user WHERE login LIKE ? OR nom LIKE ? OR role LIKE ?";
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            String searchTerm = "%" + query + "%";
+            pstmt.setString(1, searchTerm);
+            pstmt.setString(2, searchTerm);
+            pstmt.setString(3, searchTerm);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        }
+        return 0;
     }
 
     public User findByLogin(String login) throws SQLException {

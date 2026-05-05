@@ -61,6 +61,36 @@ public class NoteDAO extends BaseDAO<Note> {
         return notes;
     }
 
+    public int count() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM note";
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) return rs.getInt(1);
+        }
+        return 0;
+    }
+
+    public int countByEtudiant(Long etudiantId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM note WHERE etudiant_id = ?";
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, etudiantId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
+    public int countByMatiere(Long matiereId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM note WHERE matiere_id = ?";
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, matiereId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
     public Note findByEtudiantAndMatiere(Long etudiantId, Long matiereId, String session, String anneeAcademique) throws SQLException {
         String sql = "SELECT * FROM note WHERE etudiant_id = ? AND matiere_id = ? AND session = ? AND annee_academique = ?";
         try (Connection conn = getConnection();

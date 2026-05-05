@@ -50,14 +50,20 @@ public class EtudiantServlet extends HttpServlet {
                 int offset = (pageNum - 1) * PAGE_SIZE;
 
                 List<Etudiant> etudiants;
+                int totalCount = 0;
                 if (search != null && !search.isEmpty()) {
                     etudiants = etudiantDAO.search(search, PAGE_SIZE, offset);
+                    totalCount = etudiantDAO.countSearch(search);
                 } else {
                     etudiants = etudiantDAO.findAll(PAGE_SIZE, offset);
+                    totalCount = etudiantDAO.count();
                 }
+
+                int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
 
                 req.setAttribute("etudiants", etudiants);
                 req.setAttribute("currentPage", pageNum);
+                req.setAttribute("totalPages", totalPages);
                 req.setAttribute("pageSize", PAGE_SIZE);
                 req.setAttribute("search", search);
                 req.getRequestDispatcher("/WEB-INF/views/etudiants/list.jsp").forward(req, resp);

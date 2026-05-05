@@ -60,6 +60,33 @@ public class DeliberationDAO extends BaseDAO<Deliberation> {
         return deliberations;
     }
 
+    public int count() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM deliberation";
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) return rs.getInt(1);
+        }
+        return 0;
+    }
+
+    public int countByFiliere(String filiere) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM deliberation WHERE filiere = ?";
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, filiere);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
+    public int countPublished() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM deliberation WHERE publiee = TRUE";
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) return rs.getInt(1);
+        }
+        return 0;
+    }
+
     @Override
     public Deliberation findById(Long id) throws SQLException {
         String sql = "SELECT * FROM deliberation WHERE id = ?";

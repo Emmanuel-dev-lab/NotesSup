@@ -48,14 +48,20 @@ public class UserServlet extends HttpServlet {
                 int offset = (pageNum - 1) * PAGE_SIZE;
 
                 List<User> users;
+                int totalCount = 0;
                 if (search != null && !search.isEmpty()) {
                     users = userDAO.search(search, PAGE_SIZE, offset);
+                    totalCount = userDAO.countSearch(search);
                 } else {
                     users = userDAO.findAll(PAGE_SIZE, offset);
+                    totalCount = userDAO.count();
                 }
+
+                int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
 
                 req.setAttribute("users", users);
                 req.setAttribute("currentPage", pageNum);
+                req.setAttribute("totalPages", totalPages);
                 req.setAttribute("pageSize", PAGE_SIZE);
                 req.setAttribute("search", search);
                 req.getRequestDispatcher("/WEB-INF/views/users/list.jsp").forward(req, resp);

@@ -50,9 +50,13 @@ public class DeliberationServlet extends HttpServlet {
                 int offset = (pageNum - 1) * PAGE_SIZE;
 
                 List<Deliberation> deliberations = deliberationDAO.findPublished(PAGE_SIZE, offset);
+                int totalCount = deliberationDAO.countPublished();
+                int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
+
                 List<DeliberationDTO> deliberationDTOs = enrichDeliberations(deliberations);
                 req.setAttribute("deliberations", deliberationDTOs);
                 req.setAttribute("currentPage", pageNum);
+                req.setAttribute("totalPages", totalPages);
                 req.setAttribute("pageSize", PAGE_SIZE);
                 req.getRequestDispatcher("/WEB-INF/views/deliberations/published.jsp").forward(req, resp);
 
@@ -62,16 +66,22 @@ public class DeliberationServlet extends HttpServlet {
                 int offset = (pageNum - 1) * PAGE_SIZE;
 
                 List<Deliberation> deliberations;
+                int totalCount = 0;
                 if (filiere != null && !filiere.isEmpty()) {
                     deliberations = deliberationDAO.findByFiliere(filiere, PAGE_SIZE, offset);
+                    totalCount = deliberationDAO.countByFiliere(filiere);
                 } else {
                     deliberations = deliberationDAO.findAll(PAGE_SIZE, offset);
+                    totalCount = deliberationDAO.count();
                 }
+                
+                int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
                 
                 List<DeliberationDTO> deliberationDTOs = enrichDeliberations(deliberations);
 
                 req.setAttribute("deliberations", deliberationDTOs);
                 req.setAttribute("currentPage", pageNum);
+                req.setAttribute("totalPages", totalPages);
                 req.setAttribute("pageSize", PAGE_SIZE);
                 req.setAttribute("filiere", filiere);
                 req.getRequestDispatcher("/WEB-INF/views/deliberations/list.jsp").forward(req, resp);
