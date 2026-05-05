@@ -13,7 +13,7 @@ public class NoteDAO extends BaseDAO<Note> {
     @Override
     public List<Note> findAll(int limit, int offset) throws SQLException {
         List<Note> notes = new ArrayList<>();
-        String sql = "SELECT * FROM note ORDER BY created_at DESC LIMIT ? OFFSET ?";
+        String sql = "SELECT n.* FROM note n JOIN matiere m ON n.matiere_id = m.id ORDER BY m.intitule ASC, n.created_at DESC LIMIT ? OFFSET ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, limit);
@@ -29,7 +29,7 @@ public class NoteDAO extends BaseDAO<Note> {
 
     public List<Note> findByEtudiant(Long etudiantId, int limit, int offset) throws SQLException {
         List<Note> notes = new ArrayList<>();
-        String sql = "SELECT * FROM note WHERE etudiant_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?";
+        String sql = "SELECT n.* FROM note n JOIN matiere m ON n.matiere_id = m.id WHERE n.etudiant_id = ? ORDER BY m.intitule ASC, n.created_at DESC LIMIT ? OFFSET ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setLong(1, etudiantId);
@@ -50,6 +50,23 @@ public class NoteDAO extends BaseDAO<Note> {
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setLong(1, matiereId);
+            pstmt.setInt(2, limit);
+            pstmt.setInt(3, offset);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    notes.add(mapNote(rs));
+                }
+            }
+        }
+        return notes;
+    }
+
+    public List<Note> findByEnseignant(String enseignantNom, int limit, int offset) throws SQLException {
+        List<Note> notes = new ArrayList<>();
+        String sql = "SELECT n.* FROM note n JOIN matiere m ON n.matiere_id = m.id WHERE m.enseignant = ? ORDER BY m.intitule ASC, n.created_at DESC LIMIT ? OFFSET ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, enseignantNom);
             pstmt.setInt(2, limit);
             pstmt.setInt(3, offset);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -84,6 +101,17 @@ public class NoteDAO extends BaseDAO<Note> {
         String sql = "SELECT COUNT(*) FROM note WHERE matiere_id = ?";
         try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setLong(1, matiereId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
+    public int countByEnseignant(String enseignantNom) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM note n JOIN matiere m ON n.matiere_id = m.id WHERE m.enseignant = ?";
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, enseignantNom);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) return rs.getInt(1);
             }
@@ -163,6 +191,46 @@ public class NoteDAO extends BaseDAO<Note> {
             pstmt.setLong(1, id);
             pstmt.executeUpdate();
         }
+    }
+
+    public List<Note> findByFiliereSessionAnnee(String filiere, String session, String annee) throws SQLException {
+        List<Note> notes = new ArrayList<>();
+        String sql = "SELECT n.* FROM note n " +
+                     "JOIN etudiant e ON n.etudiant_id = e.id " +
+                     "WHERE e.filiere = ? AND n.session = ? AND n.annee_academique = ? " +
+                     "ORDER BY e.nom, e.prenom";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, filiere);
+            pstmt.setString(2, session);
+            pstmt.setString(3, annee);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    notes.add(mapNote(rs));
+                }
+            }
+        }
+        return notes;
+    }
+
+    public List<Note> findByEtudiantSessionAnnee(Long etudiantId, String session, String annee) throws SQLException {
+        List<Note> notes = new ArrayList<>();
+        String sql = "SELECT n.* FROM note n " +
+                     "JOIN matiere m ON n.matiere_id = m.id " +
+                     "WHERE n.etudiant_id = ? AND n.session = ? AND n.annee_academique = ? " +
+                     "ORDER BY m.intitule ASC";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, etudiantId);
+            pstmt.setString(2, session);
+            pstmt.setString(3, annee);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    notes.add(mapNote(rs));
+                }
+            }
+        }
+        return notes;
     }
 
     private Note mapNote(ResultSet rs) throws SQLException {

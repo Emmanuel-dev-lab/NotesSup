@@ -327,7 +327,7 @@ VALUES
 --  DONNÉES: délibérations
 -- ============================================================
 INSERT INTO `deliberation` (filiere, session, annee_academique, date_publication, publiee, publiee_par) VALUES
-('Informatique', 'NORMALE',    '2025-2026', '2024-02-15', TRUE,  'Dr. Amadou Diallo'),
+('Informatique', 'NORMALE',    '2025-2026', '2026-02-15', TRUE,  'Dr. Amadou Diallo'),
 ('Réseaux',      'NORMALE',    '2025-2026', NULL,         FALSE, NULL);
 
 

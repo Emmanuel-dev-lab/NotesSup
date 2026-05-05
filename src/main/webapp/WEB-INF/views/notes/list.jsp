@@ -119,6 +119,21 @@
                     </table>
                 </div>
             </div>
+
+            <c:if test="${totalPages > 1}">
+                <div class="pagination">
+                    <c:forEach begin="1" end="${totalPages}" var="p">
+                        <c:choose>
+                            <c:when test="${p == currentPage}">
+                                <span class="page-link active">${p}</span>
+                            </c:when>
+                            <c:otherwise>
+                                <a href="?page=${p}&etudiant=${etudiant}&matiere=${matiere}" class="page-link">${p}</a>
+                            </c:otherwise>
+                        </c:choose>
+                    </c:forEach>
+                </div>
+            </c:if>
         </div>
     </main>
 </body>

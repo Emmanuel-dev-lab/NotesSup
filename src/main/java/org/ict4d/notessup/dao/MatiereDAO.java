@@ -165,6 +165,21 @@ public class MatiereDAO extends BaseDAO<Matiere> {
         }
     }
 
+    public List<Matiere> findByEnseignant(String enseignantNom) throws SQLException {
+        List<Matiere> matieres = new ArrayList<>();
+        String sql = "SELECT * FROM matiere WHERE enseignant = ? ORDER BY intitule";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, enseignantNom);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    matieres.add(mapMatiere(rs));
+                }
+            }
+        }
+        return matieres;
+    }
+
     private Matiere mapMatiere(ResultSet rs) throws SQLException {
         Matiere matiere = new Matiere();
         matiere.setId(rs.getLong("id"));

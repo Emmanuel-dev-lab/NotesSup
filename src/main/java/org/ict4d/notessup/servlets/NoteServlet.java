@@ -47,13 +47,19 @@ public class NoteServlet extends HttpServlet {
 
         try {
             if ("grille".equals(action)) {
-                // Show grille de saisie des notes (CHEF only)
-                if (!Constants.ROLE_CHEF.equals(role)) {
+                // Show grille de saisie des notes (CHEF or ENSEIGNANT)
+                if (!Constants.ROLE_CHEF.equals(role) && !Constants.ROLE_ENSEIGNANT.equals(role)) {
                     resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
                     return;
                 }
+                User currentUser = (User) session.getAttribute(Constants.SESSION_USER);
                 List<Etudiant> etudiants = etudiantDAO.findAll(100, 0);
-                List<Matiere> matieres = matiereDAO.findAll(100, 0);
+                List<Matiere> matieres;
+                if (Constants.ROLE_ENSEIGNANT.equals(role) && currentUser != null) {
+                    matieres = matiereDAO.findByEnseignant(currentUser.getNom());
+                } else {
+                    matieres = matiereDAO.findAll(100, 0);
+                }
 
                 req.setAttribute("etudiants", etudiants);
                 req.setAttribute("matieres", matieres);
@@ -62,28 +68,40 @@ public class NoteServlet extends HttpServlet {
                 req.getRequestDispatcher("/WEB-INF/views/notes/grille.jsp").forward(req, resp);
 
             } else if ("add".equals(action)) {
-                // Show add form (CHEF only)
-                if (!Constants.ROLE_CHEF.equals(role)) {
+                // Show add form (CHEF or ENSEIGNANT)
+                if (!Constants.ROLE_CHEF.equals(role) && !Constants.ROLE_ENSEIGNANT.equals(role)) {
                     resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
                     return;
                 }
+                User currentUser = (User) session.getAttribute(Constants.SESSION_USER);
                 List<Etudiant> etudiants = etudiantDAO.findAll(100, 0);
-                List<Matiere> matieres = matiereDAO.findAll(100, 0);
+                List<Matiere> matieres;
+                if (Constants.ROLE_ENSEIGNANT.equals(role) && currentUser != null) {
+                    matieres = matiereDAO.findByEnseignant(currentUser.getNom());
+                } else {
+                    matieres = matiereDAO.findAll(100, 0);
+                }
 
                 req.setAttribute("etudiants", etudiants);
                 req.setAttribute("matieres", matieres);
                 req.getRequestDispatcher("/WEB-INF/views/notes/form.jsp").forward(req, resp);
 
             } else if ("edit".equals(action)) {
-                // Show edit form (CHEF only)
-                if (!Constants.ROLE_CHEF.equals(role)) {
+                // Show edit form (CHEF or ENSEIGNANT)
+                if (!Constants.ROLE_CHEF.equals(role) && !Constants.ROLE_ENSEIGNANT.equals(role)) {
                     resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
                     return;
                 }
+                User currentUser = (User) session.getAttribute(Constants.SESSION_USER);
                 String id = req.getParameter("id");
                 Note note = noteDAO.findById(Long.parseLong(id));
                 List<Etudiant> etudiants = etudiantDAO.findAll(100, 0);
-                List<Matiere> matieres = matiereDAO.findAll(100, 0);
+                List<Matiere> matieres;
+                if (Constants.ROLE_ENSEIGNANT.equals(role) && currentUser != null) {
+                    matieres = matiereDAO.findByEnseignant(currentUser.getNom());
+                } else {
+                    matieres = matiereDAO.findAll(100, 0);
+                }
 
                 req.setAttribute("note", note);
                 req.setAttribute("etudiants", etudiants);
@@ -97,12 +115,17 @@ public class NoteServlet extends HttpServlet {
 
                 List<Note> notes;
                 int totalCount = 0;
+                User currentUser = (User) session.getAttribute(Constants.SESSION_USER);
+
                 if (etudiantId != null && !etudiantId.isEmpty()) {
                     notes = noteDAO.findByEtudiant(Long.parseLong(etudiantId), PAGE_SIZE, offset);
                     totalCount = noteDAO.countByEtudiant(Long.parseLong(etudiantId));
                 } else if (matiereId != null && !matiereId.isEmpty()) {
                     notes = noteDAO.findByMatiere(Long.parseLong(matiereId), PAGE_SIZE, offset);
                     totalCount = noteDAO.countByMatiere(Long.parseLong(matiereId));
+                } else if (Constants.ROLE_ENSEIGNANT.equals(role) && currentUser != null) {
+                    notes = noteDAO.findByEnseignant(currentUser.getNom(), PAGE_SIZE, offset);
+                    totalCount = noteDAO.countByEnseignant(currentUser.getNom());
                 } else {
                     notes = noteDAO.findAll(PAGE_SIZE, offset);
                     totalCount = noteDAO.count();
@@ -118,6 +141,13 @@ public class NoteServlet extends HttpServlet {
                 req.setAttribute("pageSize", PAGE_SIZE);
                 req.setAttribute("etudiant", etudiantId);
                 req.setAttribute("matiere", matiereId);
+                req.setAttribute("filieres", Constants.FILIERES);
+                
+                if (Constants.ROLE_ENSEIGNANT.equals(role)) {
+                    req.setAttribute("matieres", matiereDAO.findByEnseignant(currentUser.getNom()));
+                } else {
+                    req.setAttribute("matieres", matiereDAO.findAll(100, 0));
+                }
 
                 req.getRequestDispatcher("/WEB-INF/views/notes/list.jsp").forward(req, resp);
             }
@@ -143,7 +173,7 @@ public class NoteServlet extends HttpServlet {
             if ("update".equals(action)) {
                 // Update existing note
                 // CHEF can always update, ENSEIGNANT can update only for their matieres
-                long matiereId = Long.parseLong(req.getParameter("matiere"));
+                long matiereId = Long.parseLong(req.getParameter("matiere_id"));
                 if (Constants.ROLE_ENSEIGNANT.equals(role)) {
                     Matiere matiere = matiereDAO.findById(matiereId);
                     if (matiere == null || !matiere.getEnseignant().equals(user.getNom())) {
@@ -157,12 +187,12 @@ public class NoteServlet extends HttpServlet {
 
                 Note note = new Note();
                 note.setId(Long.parseLong(req.getParameter("id")));
-                note.setEtudiantId(Long.parseLong(req.getParameter("etudiant")));
+                note.setEtudiantId(Long.parseLong(req.getParameter("etudiant_id")));
                 note.setMatiereId(matiereId);
-                note.setNoteCC(new BigDecimal(req.getParameter("noteCC")));
-                note.setNoteExam(new BigDecimal(req.getParameter("noteExam")));
+                note.setNoteCC(new BigDecimal(req.getParameter("note_cc")));
+                note.setNoteExam(new BigDecimal(req.getParameter("note_exam")));
                 note.setSession(req.getParameter("session"));
-                note.setAnneeAcademique(req.getParameter("annee"));
+                note.setAnneeAcademique(req.getParameter("annee_academique"));
                 note.setSaisiePar(user != null ? user.getLogin() : "system");
 
                 // Calculate noteFinale
@@ -175,7 +205,7 @@ public class NoteServlet extends HttpServlet {
             } else {
                 // Create new note
                 // CHEF can always create, ENSEIGNANT can create only for their matieres
-                long matiereId = Long.parseLong(req.getParameter("matiere"));
+                long matiereId = Long.parseLong(req.getParameter("matiere_id"));
                 if (Constants.ROLE_ENSEIGNANT.equals(role)) {
                     Matiere matiere = matiereDAO.findById(matiereId);
                     if (matiere == null || !matiere.getEnseignant().equals(user.getNom())) {
@@ -188,12 +218,12 @@ public class NoteServlet extends HttpServlet {
                 }
 
                 Note note = new Note();
-                note.setEtudiantId(Long.parseLong(req.getParameter("etudiant")));
+                note.setEtudiantId(Long.parseLong(req.getParameter("etudiant_id")));
                 note.setMatiereId(matiereId);
-                note.setNoteCC(new BigDecimal(req.getParameter("noteCC")));
-                note.setNoteExam(new BigDecimal(req.getParameter("noteExam")));
+                note.setNoteCC(new BigDecimal(req.getParameter("note_cc")));
+                note.setNoteExam(new BigDecimal(req.getParameter("note_exam")));
                 note.setSession(req.getParameter("session"));
-                note.setAnneeAcademique(req.getParameter("annee"));
+                note.setAnneeAcademique(req.getParameter("annee_academique"));
                 note.setSaisiePar(user != null ? user.getLogin() : "system");
 
                 // Calculate noteFinale

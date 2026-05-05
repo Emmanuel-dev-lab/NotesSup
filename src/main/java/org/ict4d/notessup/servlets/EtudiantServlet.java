@@ -22,8 +22,8 @@ public class EtudiantServlet extends HttpServlet {
         HttpSession session = req.getSession(false);
         String role = (String) session.getAttribute(Constants.SESSION_ROLE);
 
-        // Only CHEF_DEPT can view etudiants
-        if (!Constants.ROLE_CHEF.equals(role)) {
+        // CHEF_DEPT and ENSEIGNANT can view etudiants
+        if (!Constants.ROLE_CHEF.equals(role) && !Constants.ROLE_ENSEIGNANT.equals(role)) {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
             return;
         }

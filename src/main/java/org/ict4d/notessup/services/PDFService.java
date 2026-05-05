@@ -122,21 +122,19 @@ public class PDFService {
         addTableHeader(table, "Mention");
 
         // Données des notes
-        List<Note> notes = noteDAO.findByEtudiant(etudiantId, 100, 0);
+        List<Note> notes = noteDAO.findByEtudiantSessionAnnee(etudiantId, session, anneeAcademique);
 
         for (Note note : notes) {
-            if (session.equals(note.getSession()) && anneeAcademique.equals(note.getAnneeAcademique())) {
-                Matiere matiere = matiereDAO.findById(note.getMatiereId());
-                if (matiere != null) {
-                    addTableCell(table, matiere.getIntitule());
-                    addTableCell(table, matiere.getCode());
-                    addTableCell(table, formatNote(note.getNoteCC()));
-                    addTableCell(table, formatNote(note.getNoteExam()));
-                    addTableCell(table, formatNote(note.getNoteFinale()));
+            Matiere matiere = matiereDAO.findById(note.getMatiereId());
+            if (matiere != null) {
+                addTableCell(table, matiere.getIntitule());
+                addTableCell(table, matiere.getCode());
+                addTableCell(table, formatNote(note.getNoteCC()));
+                addTableCell(table, formatNote(note.getNoteExam()));
+                addTableCell(table, formatNote(note.getNoteFinale()));
 
-                    String mention = noteService.getMention(note.getNoteFinale());
-                    addTableCell(table, mention);
-                }
+                String mention = noteService.getMention(note.getNoteFinale());
+                addTableCell(table, mention);
             }
         }
 

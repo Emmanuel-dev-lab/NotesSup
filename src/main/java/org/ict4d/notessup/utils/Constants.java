@@ -24,4 +24,7 @@ public class Constants {
 
     // Pagination
     public static final int DEFAULT_PAGE_SIZE = 6;
+
+    // Branches/Filières
+    public static final String[] FILIERES = {"Informatique", "Génie Logiciel", "Réseaux et Télécoms", "Sécurité Informatique", "Data Science"};
 }

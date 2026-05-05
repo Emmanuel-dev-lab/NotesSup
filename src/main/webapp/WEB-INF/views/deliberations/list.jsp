@@ -96,6 +96,13 @@
                     <h1>Délibérations</h1>
                     <p class="subtitle">Gestion et publication des sessions de délibérations</p>
                 </div>
+                <c:if test="${sessionScope.user.role == 'CHEF_DEPT'}">
+                    <div class="page-header-actions">
+                        <a href="${pageContext.request.contextPath}/deliberations?action=add" class="btn btn-primary">
+                            + Nouvelle délibération
+                        </a>
+                    </div>
+                </c:if>
             </div>
 
             <c:if test="${error != null}"><div class="alert alert-danger">${error}</div></c:if>

@@ -108,28 +108,20 @@ public class BulletinServlet extends HttpServlet {
             } else {
                 // Prepare HTML view data
                 Etudiant etudiant = etudiantDAO.findById(Long.parseLong(etudiantId));
-                List<Note> allNotes = noteDAO.findAll(1000, 0); // Temporary solution, NoteDAO lacks findByEtudiantId
-                List<Note> etudiantNotes = allNotes.stream()
-                        .filter(n -> n.getEtudiantId() != null && n.getEtudiantId().equals(etudiant.getId()) 
-                                  && sessionParam.equals(n.getSession())
-                                  && anneeAcademique.equals(n.getAnneeAcademique()))
-                        .toList();
+                List<Note> etudiantNotes = noteDAO.findByEtudiantSessionAnnee(etudiant.getId(), sessionParam, anneeAcademique);
                 
                 noteService.populateNoteRelations(etudiantNotes);
 
+                BigDecimal moyenneGenerale = noteService.calcMoyennePonderee(etudiantNotes);
                 BigDecimal totalPoints = BigDecimal.ZERO;
                 BigDecimal totalCoeff = BigDecimal.ZERO;
+                
                 for (Note n : etudiantNotes) {
-                    if (n.getNoteFinale() != null && n.getMatiere() != null && n.getMatiere().getCoefficient() > 0) {
+                    if (n.getNoteFinale() != null && n.getMatiere() != null) {
                         BigDecimal coeff = new BigDecimal(n.getMatiere().getCoefficient());
                         totalPoints = totalPoints.add(n.getNoteFinale().multiply(coeff));
                         totalCoeff = totalCoeff.add(coeff);
                     }
-                }
-                
-                BigDecimal moyenneGenerale = BigDecimal.ZERO;
-                if (totalCoeff.compareTo(BigDecimal.ZERO) > 0) {
-                    moyenneGenerale = totalPoints.divide(totalCoeff, 2, java.math.RoundingMode.HALF_UP);
                 }
 
                 req.setAttribute("etudiants", etudiantDAO.findAll(1000, 0));

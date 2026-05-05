@@ -33,9 +33,9 @@ public class DashboardServlet extends HttpServlet {
             // Prepare dashboard data based on role
             if (Constants.ROLE_CHEF.equals(role)) {
                 // Chef department - show statistics
-                int totalEtudiants = (int) etudiantDAO.findAll(1000, 0).size();
-                int totalMatieres = (int) matiereDAO.findAll(1000, 0).size();
-                int totalNotes = (int) noteDAO.findAll(1000, 0).size();
+                int totalEtudiants = etudiantDAO.count();
+                int totalMatieres = matiereDAO.count();
+                int totalNotes = noteDAO.count();
 
                 req.setAttribute("totalEtudiants", totalEtudiants);
                 req.setAttribute("totalMatieres", totalMatieres);
@@ -45,9 +45,18 @@ public class DashboardServlet extends HttpServlet {
 
             } else if (Constants.ROLE_ENSEIGNANT.equals(role)) {
                 // Teacher - show classes and notes
-                String filiere = user.getFiliere();
+                int totalMatieres = matiereDAO.findByEnseignant(user.getNom()).size();
+                int totalNotes = noteDAO.countByEnseignant(user.getNom());
+                int totalEtudiants = 0;
+                if (user.getFiliere() != null) {
+                    totalEtudiants = etudiantDAO.countByFiliere(user.getFiliere());
+                }
+                
+                req.setAttribute("mesMatieres", totalMatieres);
+                req.setAttribute("notesASaisir", totalNotes);
+                req.setAttribute("mesEtudiants", totalEtudiants);
                 req.setAttribute("userName", user.getNom());
-                req.setAttribute("filiere", filiere);
+                req.setAttribute("filiere", user.getFiliere());
                 req.getRequestDispatcher("/WEB-INF/views/dashboard.jsp").forward(req, resp);
 
             } else if (Constants.ROLE_ETUDIANT.equals(role)) {

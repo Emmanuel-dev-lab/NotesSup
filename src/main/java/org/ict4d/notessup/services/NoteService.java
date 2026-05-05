@@ -21,8 +21,6 @@ public class NoteService {
     private final EtudiantDAO etudiantDAO;
 
     // Barèmes de notation
-    private static final BigDecimal NOTE_MINIMAL = BigDecimal.ZERO;
-    private static final BigDecimal NOTE_MAXIMAL = new BigDecimal("20");
     private static final BigDecimal SEUIL_ADMISSION = new BigDecimal("10");
 
     // Mentions et leurs limites
@@ -113,6 +111,30 @@ public class NoteService {
     }
 
     /**
+     * Calcule la moyenne pondérée à partir d'une liste de notes déjà chargées.
+     * @param studentNotes Liste des notes de l'étudiant
+     * @return La moyenne pondérée
+     */
+    public BigDecimal calcMoyennePonderee(List<Note> studentNotes) {
+        BigDecimal totalNotes = BigDecimal.ZERO;
+        BigDecimal totalCoefficients = BigDecimal.ZERO;
+
+        for (Note note : studentNotes) {
+            Matiere matiere = note.getMatiere();
+            if (matiere != null && note.getNoteFinale() != null) {
+                BigDecimal coeff = new BigDecimal(matiere.getCoefficient());
+                totalNotes = totalNotes.add(note.getNoteFinale().multiply(coeff));
+                totalCoefficients = totalCoefficients.add(coeff);
+            }
+        }
+
+        if (totalCoefficients.compareTo(BigDecimal.ZERO) > 0) {
+            return totalNotes.divide(totalCoefficients, 2, RoundingMode.HALF_UP);
+        }
+        return BigDecimal.ZERO;
+    }
+
+    /**
      * Calcule la moyenne pondérée pour un étudiant.
      * Moyenne pondérée = Σ(note_i * coefficient_i) / Σ(coefficient_i)
      * @param etudiantId L'ID de l'étudiant
@@ -122,26 +144,10 @@ public class NoteService {
      * @throws SQLException Si une erreur de base de données se produit
      */
     public BigDecimal calcMoyennePonderee(Long etudiantId, String session, String anneeAcademique) throws SQLException {
-        List<Note> notes = noteDAO.findByEtudiant(etudiantId, 100, 0);
-
-        BigDecimal totalNotes = BigDecimal.ZERO;
-        BigDecimal totalCoefficients = BigDecimal.ZERO;
-
-        for (Note note : notes) {
-            if (session.equals(note.getSession()) && anneeAcademique.equals(note.getAnneeAcademique())) {
-                Matiere matiere = matiereDAO.findById(note.getMatiereId());
-                if (matiere != null && note.getNoteFinale() != null) {
-                    BigDecimal coeff = new BigDecimal(matiere.getCoefficient());
-                    totalNotes = totalNotes.add(note.getNoteFinale().multiply(coeff));
-                    totalCoefficients = totalCoefficients.add(coeff);
-                }
-            }
-        }
-
-        if (totalCoefficients.compareTo(BigDecimal.ZERO) > 0) {
-            return totalNotes.divide(totalCoefficients, 2, RoundingMode.HALF_UP);
-        }
-        return BigDecimal.ZERO;
+        if (session == null || anneeAcademique == null) return BigDecimal.ZERO;
+        List<Note> notes = noteDAO.findByEtudiantSessionAnnee(etudiantId, session, anneeAcademique);
+        populateNoteRelations(notes);
+        return calcMoyennePonderee(notes);
     }
 
     /**
@@ -154,39 +160,41 @@ public class NoteService {
      * @throws SQLException Si une erreur de base de données se produit
      */
     public BigDecimal calcTauxReussite(Long etudiantId, String session, String anneeAcademique) throws SQLException {
-        List<Note> notes = noteDAO.findByEtudiant(etudiantId, 100, 0);
+        if (session == null || anneeAcademique == null) return BigDecimal.ZERO;
+        List<Note> notes = noteDAO.findByEtudiantSessionAnnee(etudiantId, session, anneeAcademique);
+        
+        if (notes.isEmpty()) return BigDecimal.ZERO;
 
-        int totalMatieres = 0;
-        int matiereAdmises = 0;
+        long validees = notes.stream()
+                .filter(n -> isAdmis(n.getNoteFinale()))
+                .count();
 
-        for (Note note : notes) {
-            if (session.equals(note.getSession()) && anneeAcademique.equals(note.getAnneeAcademique())) {
-                totalMatieres++;
-                if (isAdmis(note.getNoteFinale())) {
-                    matiereAdmises++;
-                }
-            }
-        }
-
-        if (totalMatieres > 0) {
-            return new BigDecimal(matiereAdmises)
-                    .divide(new BigDecimal(totalMatieres), 2, RoundingMode.HALF_UP)
-                    .multiply(new BigDecimal("100"));
-        }
-        return BigDecimal.ZERO;
+        return new BigDecimal(validees)
+                .multiply(new BigDecimal("100"))
+                .divide(new BigDecimal(notes.size()), 2, RoundingMode.HALF_UP);
     }
 
     /**
-     * Compose les relations (Etudiant, Matiere) pour une liste de notes.
-     * C'est la bonne pratique (DTO/Service mapping) au lieu du DB JOIN.
+     * Compose les relations (Etudiant, Matiere) pour une liste de notes de façon optimisée.
      */
     public void populateNoteRelations(List<Note> notes) throws SQLException {
+        if (notes == null || notes.isEmpty()) return;
+        
+        java.util.Map<Long, Etudiant> etudiantCache = new java.util.HashMap<>();
+        java.util.Map<Long, Matiere> matiereCache = new java.util.HashMap<>();
+        
         for (Note note : notes) {
             if (note.getEtudiantId() != null) {
-                note.setEtudiant(etudiantDAO.findById(note.getEtudiantId()));
+                if (!etudiantCache.containsKey(note.getEtudiantId())) {
+                    etudiantCache.put(note.getEtudiantId(), etudiantDAO.findById(note.getEtudiantId()));
+                }
+                note.setEtudiant(etudiantCache.get(note.getEtudiantId()));
             }
             if (note.getMatiereId() != null) {
-                note.setMatiere(matiereDAO.findById(note.getMatiereId()));
+                if (!matiereCache.containsKey(note.getMatiereId())) {
+                    matiereCache.put(note.getMatiereId(), matiereDAO.findById(note.getMatiereId()));
+                }
+                note.setMatiere(matiereCache.get(note.getMatiereId()));
             }
         }
     }

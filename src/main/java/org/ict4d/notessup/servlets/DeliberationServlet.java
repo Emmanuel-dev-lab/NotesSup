@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpSession;
 import org.ict4d.notessup.models.Deliberation;
 import org.ict4d.notessup.models.DeliberationDTO;
 import org.ict4d.notessup.models.Etudiant;
+import org.ict4d.notessup.models.Note;
 import org.ict4d.notessup.dao.DeliberationDAO;
 import org.ict4d.notessup.dao.EtudiantDAO;
 import org.ict4d.notessup.dao.NoteDAO;
@@ -44,7 +45,55 @@ public class DeliberationServlet extends HttpServlet {
         String filiere = req.getParameter("filiere");
 
         try {
-            if ("published".equals(action)) {
+            if ("add".equals(action)) {
+                // Show creation form (CHEF only)
+                if (!Constants.ROLE_CHEF.equals(role)) {
+                    resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+                    return;
+                }
+                req.setAttribute("filieres", Constants.FILIERES);
+                req.getRequestDispatcher("/WEB-INF/views/deliberations/form.jsp").forward(req, resp);
+
+            } else if ("pv".equals(action) || "pdf".equals(action)) {
+                // Show PV (Procès-Verbal)
+                String id = req.getParameter("id");
+                Deliberation delib = deliberationDAO.findById(Long.parseLong(id));
+                if (delib == null) {
+                    resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    return;
+                }
+                
+                // Fetch all notes for this context
+                List<Note> notes = noteDAO.findByFiliereSessionAnnee(delib.getFiliere(), delib.getSession(), delib.getAnneeAcademique());
+                noteService.populateNoteRelations(notes);
+                
+                // Group results by student
+                java.util.Map<Long, java.util.List<Note>> notesByStudent = notes.stream()
+                        .collect(java.util.stream.Collectors.groupingBy(Note::getEtudiantId));
+                
+                java.util.List<java.util.Map<String, Object>> results = new java.util.ArrayList<>();
+                for (java.util.Map.Entry<Long, java.util.List<Note>> entry : notesByStudent.entrySet()) {
+                    java.util.Map<String, Object> result = new java.util.HashMap<>();
+                    Etudiant e = entry.getValue().get(0).getEtudiant();
+                    result.put("etudiant", e);
+                    java.math.BigDecimal moy = noteService.calcMoyennePonderee(e.getId(), delib.getSession(), delib.getAnneeAcademique());
+                    result.put("moyenne", moy);
+                    result.put("admis", noteService.isAdmis(moy));
+                    result.put("mention", noteService.getMention(moy));
+                    results.add(result);
+                }
+                
+                req.setAttribute("deliberation", delib);
+                req.setAttribute("results", results);
+                
+                if ("pdf".equals(action)) {
+                   // For now, redirect to PV as a placeholder or show a message
+                   req.setAttribute("success", "Génération PDF en cours d'implémentation...");
+                }
+                
+                req.getRequestDispatcher("/WEB-INF/views/deliberations/pv.jsp").forward(req, resp);
+
+            } else if ("published".equals(action)) {
                 // Show only published deliberations
                 int pageNum = page != null ? Integer.parseInt(page) : 1;
                 int offset = (pageNum - 1) * PAGE_SIZE;
@@ -195,19 +244,33 @@ public class DeliberationServlet extends HttpServlet {
         List<DeliberationDTO> dtos = new java.util.ArrayList<>();
         for (Deliberation d : deliberations) {
             DeliberationDTO dto = new DeliberationDTO(d);
-            List<Etudiant> etuds = etudiantDAO.findByFiliere(d.getFiliere(), 1000, 0);
-            dto.setNbEtudiants(etuds.size());
+            
+            // Mode optimisé : une seule requête pour toutes les notes de la session
+            List<Note> sessionNotes = noteDAO.findByFiliereSessionAnnee(d.getFiliere(), d.getSession(), d.getAnneeAcademique());
+            noteService.populateNoteRelations(sessionNotes);
+            
+            java.util.Map<Long, List<Note>> notesByStudent = sessionNotes.stream()
+                .collect(java.util.stream.Collectors.groupingBy(Note::getEtudiantId));
+            
             int admis = 0;
-            java.math.BigDecimal totalMoyennes = java.math.BigDecimal.ZERO;
-            for (Etudiant e : etuds) {
-                java.math.BigDecimal moy = noteService.calcMoyennePonderee(e.getId(), d.getSession(), d.getAnneeAcademique());
-                totalMoyennes = totalMoyennes.add(moy);
-                if (noteService.isAdmis(moy)) admis++;
+            java.math.BigDecimal totalMoy = java.math.BigDecimal.ZERO;
+            
+            for (List<Note> studentNotes : notesByStudent.values()) {
+                java.math.BigDecimal moy = noteService.calcMoyennePonderee(studentNotes);
+                if (noteService.isAdmis(moy)) {
+                    admis++;
+                }
+                totalMoy = totalMoy.add(moy);
             }
+            
+            dto.setNbEtudiants(notesByStudent.size());
             dto.setNbAdmis(admis);
-            if (etuds.size() > 0) {
-                dto.setMoyenne(totalMoyennes.divide(new java.math.BigDecimal(etuds.size()), 2, java.math.RoundingMode.HALF_UP));
+            if (!notesByStudent.isEmpty()) {
+                dto.setMoyenne(totalMoy.divide(new java.math.BigDecimal(notesByStudent.size()), 2, java.math.RoundingMode.HALF_UP));
+            } else {
+                dto.setMoyenne(java.math.BigDecimal.ZERO);
             }
+            
             dtos.add(dto);
         }
         return dtos;
