@@ -45,6 +45,12 @@ public class BulletinServlet extends HttpServlet {
         String anneeAcademique = req.getParameter("annee");
         String format = req.getParameter("format");
 
+        if (Constants.ROLE_ETUDIANT.equals(role)) {
+            if (etudiantId == null || etudiantId.trim().isEmpty()) etudiantId = user.getEtudiantId().toString();
+            if (sessionParam == null) sessionParam = "NORMALE";
+            if (anneeAcademique == null) anneeAcademique = "2025-2026";
+        }
+
         try {
             // When accessed without parameters (e.g. from sidebar), show the select form
             if (etudiantId == null || etudiantId.trim().isEmpty() || sessionParam == null || anneeAcademique == null) {
@@ -80,8 +86,10 @@ public class BulletinServlet extends HttpServlet {
             }
 
             // Check if deliberation is published for ETUDIANT
+            final String finalSession = sessionParam;
+            final String finalAnnee = anneeAcademique;
             Optional<Deliberation> deliberation = deliberationDAO.findAll(100, 0).stream()
-                    .filter(d -> sessionParam.equals(d.getSession()) && anneeAcademique.equals(d.getAnneeAcademique()))
+                    .filter(d -> finalSession.equals(d.getSession()) && finalAnnee.equals(d.getAnneeAcademique()))
                     .findFirst();
 
             if (deliberation.isEmpty() || !deliberation.get().getPubliee()) {

@@ -95,6 +95,7 @@ public class AuthenticationFilter implements Filter {
             // Restricted to their basic view pages
             return path.equals("/dashboard") || 
                    path.equals("/bulletins") || 
+                   path.equals("/statistiques") || 
                    path.startsWith("/assets/") ||
                    path.startsWith("/css/") ||
                    path.startsWith("/js/");

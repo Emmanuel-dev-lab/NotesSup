@@ -16,8 +16,8 @@ public class SMSService {
     private final EtudiantDAO etudiantDAO;
 
     // Modèles de messages
-    private static final String PUBLICATION_TEMPLATE = "Bonjour %s, les notes de la session %s (%s) ont été publiées. Consultez votre bulletin sur la plateforme.";
-    private static final String ALERT_TEMPLATE = "Alerte %s: Vous n'êtes pas admis à la session %s (%s). Moyenne: %.2f. Contactez votre coordinateur.";
+    private static final String PUBLICATION_TEMPLATE = "Vos notes sont disponibles. Moyenne : %.2f/20. Mention : %s";
+    private static final String ALERT_TEMPLATE = "Attention : votre moyenne est de %.2f/20. Presentez-vous a la scolarite";
 
     public SMSService() {
         this.etudiantDAO = new EtudiantDAO();
@@ -27,25 +27,40 @@ public class SMSService {
      * Envoie une notification SMS simulée pour la publication des notes.
      * Intègre le concept de passerelle SMS pluggable requis par SMSLib.
      */
-    public boolean sendSMSNotification(Long etudiantId, String session, String anneeAcademique) throws SQLException {
+    public boolean sendSMSNotification(Long etudiantId, BigDecimal moyenne, String mention) throws SQLException {
         Etudiant etudiant = etudiantDAO.findById(etudiantId);
         if (etudiant == null || etudiant.getTelephone() == null || etudiant.getTelephone().isEmpty()) {
             logger.warn("SMS non envoyé: Étudiant {} non trouvé ou sans numéro de téléphone", etudiantId);
             return false;
         }
 
-        String message = getPublicationMessage(etudiant, session, anneeAcademique);
+        String message;
+        if (moyenne != null && moyenne.compareTo(new BigDecimal("10")) >= 0) {
+            message = getPublicationMessage(moyenne, mention);
+        } else {
+            message = getAlertMessage(moyenne != null ? moyenne : BigDecimal.ZERO);
+        }
+        
         return sendSMSSimulated(etudiant.getTelephone(), message);
     }
 
     /**
      * Envoie des notifications en masse lors de la délibération.
      */
-    public void sendBulkPublicationAlert(java.util.List<Etudiant> etudiants, String session, String annee) {
-        logger.info("Démarrage de l'envoi groupé de SMS pour la session {} {}", session, annee);
+    public void sendBulkPublicationAlert(java.util.List<Etudiant> etudiants, java.util.Map<Long, BigDecimal> moyennes, java.util.Map<Long, String> mentions) {
+        logger.info("Démarrage de l'envoi groupé de SMS");
         for (Etudiant e : etudiants) {
             if (e.getTelephone() != null && !e.getTelephone().isEmpty()) {
-                String msg = getPublicationMessage(e, session, annee);
+                BigDecimal moy = moyennes.get(e.getId());
+                String ment = mentions.get(e.getId());
+                
+                String msg;
+                if (moy != null && moy.compareTo(new BigDecimal("10")) >= 0) {
+                    msg = getPublicationMessage(moy, ment);
+                } else {
+                    msg = getAlertMessage(moy != null ? moy : BigDecimal.ZERO);
+                }
+                
                 sendSMSSimulated(e.getTelephone(), msg);
             }
         }
@@ -54,46 +69,38 @@ public class SMSService {
     /**
      * Envoie une notification d'alerte SMS en cas de non-admission.
      * @param etudiantId L'ID de l'étudiant
-     * @param session La session
-     * @param anneeAcademique L'année académique
-     * @param moyennes La moyenne générale
+     * @param moyenne La moyenne générale
      * @return true si l'envoi est réussi (simulé)
      * @throws SQLException Si une erreur de base de données se produit
      */
-    public boolean sendAlertSMS(Long etudiantId, String session, String anneeAcademique, BigDecimal moyennes) throws SQLException {
+    public boolean sendAlertSMS(Long etudiantId, BigDecimal moyenne) throws SQLException {
         Etudiant etudiant = etudiantDAO.findById(etudiantId);
         if (etudiant == null || etudiant.getTelephone() == null) {
             logger.warn("SMS d'alerte non envoyé: Étudiant {} non trouvé ou sans numéro de téléphone", etudiantId);
             return false;
         }
 
-        String message = getAlertMessage(etudiant, session, anneeAcademique, moyennes);
+        String message = getAlertMessage(moyenne);
         return sendSMSSimulated(etudiant.getTelephone(), message);
     }
 
     /**
      * Génère le message de publication des notes.
-     * @param etudiant L'objet Etudiant
-     * @param session La session
-     * @param anneeAcademique L'année académique
+     * @param moyenne La moyenne générale
+     * @param mention La mention obtenue
      * @return Le message formaté
      */
-    public String getPublicationMessage(Etudiant etudiant, String session, String anneeAcademique) {
-        String prenom = etudiant.getPrenom() != null ? etudiant.getPrenom() : "";
-        return String.format(PUBLICATION_TEMPLATE, prenom, session, anneeAcademique);
+    public String getPublicationMessage(BigDecimal moyenne, String mention) {
+        return String.format(java.util.Locale.US, PUBLICATION_TEMPLATE, moyenne, mention);
     }
 
     /**
      * Génère le message d'alerte en cas de non-admission.
-     * @param etudiant L'objet Etudiant
-     * @param session La session
-     * @param anneeAcademique L'année académique
      * @param moyenne La moyenne générale
      * @return Le message formaté
      */
-    public String getAlertMessage(Etudiant etudiant, String session, String anneeAcademique, BigDecimal moyenne) {
-        String prenom = etudiant.getPrenom() != null ? etudiant.getPrenom() : "";
-        return String.format(ALERT_TEMPLATE, prenom, session, anneeAcademique, moyenne);
+    public String getAlertMessage(BigDecimal moyenne) {
+        return String.format(java.util.Locale.US, ALERT_TEMPLATE, moyenne);
     }
 
     /**
