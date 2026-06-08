@@ -94,7 +94,16 @@
                                             <td class="td-mono" style="color:var(--accent-blue); font-weight:500;">${e.matricule}</td>
                                             <td class="td-bold">${e.nom} ${e.prenom}</td>
                                             <td><span class="badge badge-info">${e.filiere}</span></td>
-                                            <td class="td-mono">L${e.annee}</td>
+                                            <td class="td-mono">
+                                                <c:choose>
+                                                    <c:when test="${e.annee == 1}">L1</c:when>
+                                                    <c:when test="${e.annee == 2}">L2</c:when>
+                                                    <c:when test="${e.annee == 3}">L3</c:when>
+                                                    <c:when test="${e.annee == 4}">M1</c:when>
+                                                    <c:when test="${e.annee == 5}">M2</c:when>
+                                                    <c:otherwise>L${e.annee}</c:otherwise>
+                                                </c:choose>
+                                            </td>
                                             <td class="td-mono">${e.telephone != null ? e.telephone : '—'}</td>
                                             <c:if test="${sessionScope.user.role == 'CHEF_DEPT'}">
                                                 <td>

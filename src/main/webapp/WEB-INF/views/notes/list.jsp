@@ -8,6 +8,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Saisie des notes — NotesSup</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <style>
+        .text-note-success { color: #059669; }
+        .text-note-info { color: #0891b2; }
+        .text-note-purple { color: #7c3aed; }
+        .text-note-warning { color: #d97706; }
+        .text-note-danger { color: #dc2626; }
+    </style>
 </head>
 <body>
     <jsp:include page="/WEB-INF/views/components/sidebar.jsp" />
@@ -31,6 +38,12 @@
             <!-- Filtres -->
             <form method="GET" action="${pageContext.request.contextPath}/notes">
                 <div class="toolbar">
+                    <div class="search-bar">
+                        <span class="search-bar-icon">⌕</span>
+                        <input type="text" id="noteSearchInput"
+                               placeholder="Rechercher par nom ou matricule..."
+                               oninput="filterNoteRows(this.value)">
+                    </div>
                     <select name="filiere">
                         <option value="">Toutes les filières</option>
                         <c:forEach var="f" items="${filieres}">
@@ -79,11 +92,17 @@
                                             <td>${note.matiere.intitule}</td>
                                             <td class="td-mono">${note.noteCC != null ? note.noteCC : '?'}</td>
                                             <td class="td-mono">${note.noteExam != null ? note.noteExam : '—'}</td>
-                                            <td class="td-mono" style="font-weight:700;
-                                                color: ${note.noteFinale >= 16 ? '#059669' :
-                                                         note.noteFinale >= 14 ? '#0891b2' :
-                                                         note.noteFinale >= 12 ? '#7c3aed' :
-                                                         note.noteFinale >= 10 ? '#d97706' : '#dc2626'};">
+                                            <c:set var="textClass" value=""/>
+                                            <c:if test="${note.noteFinale != null}">
+                                                <c:choose>
+                                                    <c:when test="${note.noteFinale >= 16}"><c:set var="textClass" value="text-note-success"/></c:when>
+                                                    <c:when test="${note.noteFinale >= 14}"><c:set var="textClass" value="text-note-info"/></c:when>
+                                                    <c:when test="${note.noteFinale >= 12}"><c:set var="textClass" value="text-note-purple"/></c:when>
+                                                    <c:when test="${note.noteFinale >= 10}"><c:set var="textClass" value="text-note-warning"/></c:when>
+                                                    <c:otherwise><c:set var="textClass" value="text-note-danger"/></c:otherwise>
+                                                </c:choose>
+                                            </c:if>
+                                            <td class="td-mono ${textClass}" style="font-weight:700;">
                                                 <c:if test="${note.noteFinale != null}">
                                                     <fmt:formatNumber value="${note.noteFinale}" maxFractionDigits="2"/>
                                                 </c:if>

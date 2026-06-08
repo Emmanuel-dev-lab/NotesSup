@@ -213,13 +213,14 @@
                             </div>
                             <div class="page-header-actions">
                                 <!-- Sélecteur élève (chef/enseignant) -->
-                                <c:if test="${sessionScope.user.role != 'ETUDIANT'}">
-                                    <form method="GET" action="${pageContext.request.contextPath}/bulletins"
-                                        style="display:flex; gap:8px; align-items: center;">
-                                        <input type="text" name="annee"
-                                            value="${anneeAcademique != null ? anneeAcademique : '2023-2024'}"
-                                            placeholder="Année (ex: 2023-2024)"
-                                            style="width: 120px; padding:9px 12px; border-radius:8px; border:1.5px solid var(--border-medium); font-family:var(--font-base);" />
+                                <form method="GET" action="${pageContext.request.contextPath}/bulletins"
+                                    style="display:flex; gap:8px; align-items: center;">
+                                    <input type="text" name="annee"
+                                        value="${anneeAcademique != null ? anneeAcademique : '2025-2026'}"
+                                        placeholder="Année (ex: 2025-2026)"
+                                        style="width: 120px; padding:9px 12px; border-radius:8px; border:1.5px solid var(--border-medium); font-family:var(--font-base);" />
+                                        
+                                    <c:if test="${sessionScope.user.role != 'ETUDIANT'}">
                                         <select name="etudiantId"
                                             style="padding:9px 12px; border-radius:8px; border:1.5px solid var(--border-medium); font-family:var(--font-base);">
                                             <option value="">— Sélectionner un étudiant —</option>
@@ -228,16 +229,20 @@
                                                     ${e.nom} ${e.prenom} (${e.matricule})</option>
                                             </c:forEach>
                                         </select>
-                                        <select name="session"
-                                            style="padding:9px 12px; border-radius:8px; border:1.5px solid var(--border-medium); font-family:var(--font-base);">
-                                            <option value="NORMALE" ${selectedSession=='NORMALE' ? 'selected' : '' }>
-                                                Session Normale</option>
-                                            <option value="RATTRAPAGE" ${selectedSession=='RATTRAPAGE' ? 'selected' : ''
-                                                }>Rattrapage</option>
-                                        </select>
-                                        <button type="submit" class="btn btn-ghost">Afficher</button>
-                                    </form>
-                                </c:if>
+                                    </c:if>
+                                    <c:if test="${sessionScope.user.role == 'ETUDIANT'}">
+                                        <input type="hidden" name="etudiantId" value="${sessionScope.user.etudiantId}" />
+                                    </c:if>
+                                    
+                                    <select name="session"
+                                        style="padding:9px 12px; border-radius:8px; border:1.5px solid var(--border-medium); font-family:var(--font-base);">
+                                        <option value="NORMALE" ${selectedSession=='NORMALE' ? 'selected' : '' }>
+                                            Session Normale</option>
+                                        <option value="RATTRAPAGE" ${selectedSession=='RATTRAPAGE' ? 'selected' : ''
+                                            }>Rattrapage</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-ghost">Afficher</button>
+                                </form>
                                 <c:if test="${etudiant != null}">
                                     <button class="btn btn-ghost" onclick="window.print();">🖨 Imprimer</button>
                                     <a href="${pageContext.request.contextPath}/bulletins?format=pdf${selectedEtudiantId != null ? '&etudiantId='.concat(selectedEtudiantId) : ''}&session=${selectedSession}&annee=${anneeAcademique}"

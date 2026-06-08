@@ -9,6 +9,62 @@
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>${note != null ? 'Éditer' : 'Ajouter'} note - NotesSup</title>
                 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+                <style>
+                    .search-select-wrapper { position: relative; }
+                    .search-select-input {
+                        width: 100%;
+                        padding: 10px 12px;
+                        border: 1.5px solid var(--border-medium, #d1d5db);
+                        border-radius: 8px;
+                        font-size: 14px;
+                        font-family: inherit;
+                        background: white;
+                        transition: border-color 0.2s;
+                        box-sizing: border-box;
+                    }
+                    .search-select-input:focus {
+                        outline: none;
+                        border-color: var(--accent-blue, #3b82f6);
+                        box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+                    }
+                    .search-select-dropdown {
+                        position: absolute;
+                        top: 100%;
+                        left: 0;
+                        right: 0;
+                        max-height: 220px;
+                        overflow-y: auto;
+                        background: white;
+                        border: 1.5px solid var(--border-medium, #d1d5db);
+                        border-top: none;
+                        border-radius: 0 0 8px 8px;
+                        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+                        z-index: 100;
+                        display: none;
+                    }
+                    .search-select-dropdown.open { display: block; }
+                    .search-select-option {
+                        padding: 10px 14px;
+                        cursor: pointer;
+                        font-size: 14px;
+                        border-bottom: 1px solid var(--border-light, #f0f0f0);
+                        transition: background 0.15s;
+                    }
+                    .search-select-option:hover,
+                    .search-select-option.highlighted {
+                        background: var(--bg-row-alt, #f8fafc);
+                    }
+                    .search-select-option .matricule {
+                        font-family: var(--font-mono, monospace);
+                        font-size: 12px;
+                        color: var(--accent-blue, #3b82f6);
+                        margin-left: 6px;
+                    }
+                    .search-select-option .no-results {
+                        color: var(--text-muted, #9ca3af);
+                        font-style: italic;
+                    }
+                </style>
             </head>
 
             <body>
@@ -42,8 +98,14 @@
                                 </c:if>
 
                                 <div class="form-group">
-                                    <label for="etudiant">Étudiant *</label>
-                                    <select id="etudiant" name="etudiant_id" required>
+                                    <label for="etudiantSearch">Étudiant *</label>
+                                    <div class="search-select-wrapper">
+                                        <input type="text" id="etudiantSearch" class="search-select-input"
+                                            placeholder="Rechercher par nom ou matricule..."
+                                            autocomplete="off">
+                                        <div id="etudiantDropdown" class="search-select-dropdown"></div>
+                                    </div>
+                                    <select id="etudiant" name="etudiant_id" required style="display:none;">
                                         <option value="">-- Sélectionner --</option>
                                         <c:forEach var="etudiant" items="${etudiants}">
                                             <option value="${etudiant.id}" ${note !=null && note.etudiantId==etudiant.id
@@ -100,8 +162,8 @@
                                 <div class="form-group">
                                     <label for="annee">Année Académique *</label>
                                     <input type="text" id="annee" name="annee_academique"
-                                        value="${note != null ? note.anneeAcademique : '2023-2024'}"
-                                        placeholder="2023-2024" required>
+                                        value="${note != null ? note.anneeAcademique : '2025-2026'}"
+                                        placeholder="2025-2026" required>
                                 </div>
 
                                 <c:if test="${note != null && note.noteFinale != null}">
@@ -121,6 +183,87 @@
                         </div>
                     </div>
                 </main>
+
+                <script>
+                (function() {
+                    const select = document.getElementById('etudiant');
+                    const searchInput = document.getElementById('etudiantSearch');
+                    const dropdown = document.getElementById('etudiantDropdown');
+
+                    // Build student data from hidden select options
+                    const students = [];
+                    for (let i = 1; i < select.options.length; i++) {
+                        const opt = select.options[i];
+                        students.push({
+                            id: opt.value,
+                            label: opt.textContent.trim(),
+                            selected: opt.selected
+                        });
+                    }
+
+                    // If editing, pre-fill the search input
+                    const selectedOpt = select.options[select.selectedIndex];
+                    if (selectedOpt && selectedOpt.value) {
+                        searchInput.value = selectedOpt.textContent.trim();
+                    }
+
+                    function renderDropdown(filter) {
+                        const query = (filter || '').toLowerCase();
+                        const filtered = query
+                            ? students.filter(s => s.label.toLowerCase().includes(query))
+                            : students;
+
+                        dropdown.innerHTML = '';
+                        if (filtered.length === 0) {
+                            dropdown.innerHTML = '<div class="search-select-option"><span class="no-results">Aucun résultat</span></div>';
+                        } else {
+                            filtered.forEach(s => {
+                                const div = document.createElement('div');
+                                div.className = 'search-select-option';
+                                // Parse out the matricule
+                                const match = s.label.match(/^(.+?)\s*\((.+)\)$/);
+                                if (match) {
+                                    div.innerHTML = match[1] + '<span class="matricule">(' + match[2] + ')</span>';
+                                } else {
+                                    div.textContent = s.label;
+                                }
+                                div.addEventListener('mousedown', function(e) {
+                                    e.preventDefault();
+                                    select.value = s.id;
+                                    searchInput.value = s.label;
+                                    dropdown.classList.remove('open');
+                                });
+                                dropdown.appendChild(div);
+                            });
+                        }
+                        dropdown.classList.add('open');
+                    }
+
+                    searchInput.addEventListener('focus', function() {
+                        renderDropdown(this.value);
+                    });
+
+                    searchInput.addEventListener('input', function() {
+                        renderDropdown(this.value);
+                        // Clear selection if text doesn't match
+                        const match = students.find(s => s.label.toLowerCase() === this.value.toLowerCase());
+                        if (!match) {
+                            select.value = '';
+                        }
+                    });
+
+                    searchInput.addEventListener('blur', function() {
+                        setTimeout(() => dropdown.classList.remove('open'), 200);
+                    });
+
+                    // Close dropdown on outside click
+                    document.addEventListener('click', function(e) {
+                        if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+                            dropdown.classList.remove('open');
+                        }
+                    });
+                })();
+                </script>
             </body>
 
             </html>

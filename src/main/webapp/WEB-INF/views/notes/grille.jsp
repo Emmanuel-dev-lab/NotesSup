@@ -8,6 +8,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grille des Notes - NotesSup</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <style>
+        .search-filter-bar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .search-filter-bar .search-input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border-medium, #d1d5db);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            background: white;
+            transition: border-color 0.2s;
+        }
+        .search-filter-bar .search-input:focus {
+            outline: none;
+            border-color: var(--accent-blue, #3b82f6);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+        }
+        tr.hidden-row { display: none; }
+        .search-count {
+            font-size: 13px;
+            color: var(--text-muted, #9ca3af);
+            margin-left: auto;
+            white-space: nowrap;
+        }
+    </style>
 </head>
 <body>
     <!-- Include Sidebar -->
@@ -54,10 +84,20 @@
                 </form>
             </div>
 
+            <!-- Search Bar -->
+            <div class="card" style="margin-bottom: var(--space-8);">
+                <div class="search-filter-bar">
+                    <span style="font-size: 16px;">⌕</span>
+                    <input type="text" id="grilleSearch" class="search-input"
+                           placeholder="Rechercher par nom ou matricule...">
+                    <span id="searchCount" class="search-count"></span>
+                </div>
+            </div>
+
             <!-- Notes Matrix Table -->
             <div class="card">
                 <div class="table-container">
-                    <table>
+                    <table id="grilleTable">
                         <thead>
                             <tr>
                                 <th>Étudiant</th>
@@ -72,7 +112,7 @@
                             <c:choose>
                                 <c:when test="${etudiants != null && etudiants.size() > 0}">
                                     <c:forEach var="etudiant" items="${etudiants}">
-                                        <tr>
+                                        <tr data-nom="${etudiant.nom} ${etudiant.prenom}" data-matricule="${etudiant.matricule}">
                                             <td>${etudiant.nom} ${etudiant.prenom}</td>
                                             <td class="numeric">${etudiant.matricule}</td>
                                             <c:forEach var="matiere" items="${matieres}">
@@ -113,5 +153,39 @@
             </div>
         </div>
     </main>
+
+    <script>
+    (function() {
+        const searchInput = document.getElementById('grilleSearch');
+        const table = document.getElementById('grilleTable');
+        const countSpan = document.getElementById('searchCount');
+        const rows = table ? table.querySelectorAll('tbody tr[data-nom]') : [];
+
+        function filterRows() {
+            const query = searchInput.value.toLowerCase().trim();
+            let visible = 0;
+            rows.forEach(row => {
+                const nom = (row.getAttribute('data-nom') || '').toLowerCase();
+                const matricule = (row.getAttribute('data-matricule') || '').toLowerCase();
+                if (!query || nom.includes(query) || matricule.includes(query)) {
+                    row.classList.remove('hidden-row');
+                    visible++;
+                } else {
+                    row.classList.add('hidden-row');
+                }
+            });
+            if (query) {
+                countSpan.textContent = visible + ' / ' + rows.length + ' étudiants';
+            } else {
+                countSpan.textContent = rows.length + ' étudiants';
+            }
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', filterRows);
+            filterRows(); // initial count
+        }
+    })();
+    </script>
 </body>
 </html>

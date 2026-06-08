@@ -93,6 +93,30 @@ public class DeliberationServlet extends HttpServlet {
                 
                 req.getRequestDispatcher("/WEB-INF/views/deliberations/pv.jsp").forward(req, resp);
 
+            } else if ("sms".equals(action)) {
+                if (!Constants.ROLE_CHEF.equals(role)) {
+                    resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+                    return;
+                }
+                String id = req.getParameter("id");
+                Deliberation deliberation = deliberationDAO.findById(Long.parseLong(id));
+                if (deliberation != null && deliberation.getPubliee()) {
+                    try {
+                        List<Etudiant> etudiants = etudiantDAO.findByFiliere(deliberation.getFiliere(), 1000, 0);
+                        for (Etudiant etudiant : etudiants) {
+                            java.math.BigDecimal moy = noteService.calcMoyennePonderee(etudiant.getId(), deliberation.getSession(), deliberation.getAnneeAcademique());
+                            if (moy != null) {
+                                String mention = noteService.getMention(moy);
+                                smsService.sendSMSNotification(etudiant.getId(), moy, mention);
+                            }
+                        }
+                        req.setAttribute("success", "SMS de notification envoyés avec succès");
+                    } catch (Exception e) {
+                        req.setAttribute("error", "Erreur lors de l'envoi des SMS: " + e.getMessage());
+                    }
+                }
+                resp.sendRedirect(req.getContextPath() + "/deliberations");
+
             } else if ("published".equals(action)) {
                 // Show only published deliberations
                 int pageNum = page != null ? Integer.parseInt(page) : 1;
@@ -173,7 +197,11 @@ public class DeliberationServlet extends HttpServlet {
                     try {
                         List<Etudiant> etudiants = etudiantDAO.findByFiliere(deliberation.getFiliere(), 1000, 0);
                         for (Etudiant etudiant : etudiants) {
-                            smsService.sendSMSNotification(etudiant.getId(), deliberation.getSession(), deliberation.getAnneeAcademique());
+                            java.math.BigDecimal moy = noteService.calcMoyennePonderee(etudiant.getId(), deliberation.getSession(), deliberation.getAnneeAcademique());
+                            if (moy != null) {
+                                String mention = noteService.getMention(moy);
+                                smsService.sendSMSNotification(etudiant.getId(), moy, mention);
+                            }
                         }
                     } catch (Exception e) {
                         // SMS errors should not stop the publication

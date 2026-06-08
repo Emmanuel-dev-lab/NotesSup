@@ -45,9 +45,11 @@
                             <label for="annee">Année *</label>
                             <select id="annee" name="annee" required>
                                 <option value="">— Sélectionner —</option>
-                                <c:forEach var="i" begin="1" end="5">
-                                    <option value="${i}" ${etudiant != null && etudiant.annee == i ? 'selected' : ''}>Licence ${i}</option>
-                                </c:forEach>
+                                <option value="1" ${etudiant != null && etudiant.annee == 1 ? 'selected' : ''}>Licence 1</option>
+                                <option value="2" ${etudiant != null && etudiant.annee == 2 ? 'selected' : ''}>Licence 2</option>
+                                <option value="3" ${etudiant != null && etudiant.annee == 3 ? 'selected' : ''}>Licence 3</option>
+                                <option value="4" ${etudiant != null && etudiant.annee == 4 ? 'selected' : ''}>Master 1</option>
+                                <option value="5" ${etudiant != null && etudiant.annee == 5 ? 'selected' : ''}>Master 2</option>
                             </select>
                         </div>
                         <div class="form-group">
