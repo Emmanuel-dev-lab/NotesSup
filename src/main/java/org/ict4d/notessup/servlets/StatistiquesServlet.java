@@ -93,10 +93,11 @@ public class StatistiquesServlet extends HttpServlet {
                 }
 
                 BigDecimal moyenne = noteService.calcMoyennePonderee(etudiant.getId(),
-                        sessionParam != null ? sessionParam : "JUIN",
-                        anneeAcademique != null ? anneeAcademique : "2024/2025");
-                etudiantMoyennes.put(etudiant.getId(), moyenne);
-                etudiantAdmis.put(etudiant.getId(), noteService.isAdmis(moyenne) ? 1 : 0);
+                        sessionParam != null ? sessionParam : "NORMALE",
+                        anneeAcademique != null ? anneeAcademique : "2025-2026");
+                BigDecimal moyenneSafe = moyenne != null ? moyenne : BigDecimal.ZERO;
+                etudiantMoyennes.put(etudiant.getId(), moyenneSafe);
+                etudiantAdmis.put(etudiant.getId(), noteService.isAdmis(moyenneSafe) ? 1 : 0);
             }
 
             // Sort students by average (ranking)
@@ -143,8 +144,8 @@ public class StatistiquesServlet extends HttpServlet {
             
             req.setAttribute("matierePassRates", matierePassRates);
             req.setAttribute("matieresMap", matieresMap);
-            req.setAttribute("session", sessionParam != null ? sessionParam : "JUIN");
-            req.setAttribute("anneeAcademique", anneeAcademique != null ? anneeAcademique : "2024/2025");
+            req.setAttribute("session", sessionParam != null ? sessionParam : "NORMALE");
+            req.setAttribute("anneeAcademique", anneeAcademique != null ? anneeAcademique : "2025-2026");
             req.setAttribute("filiere", filiere);
 
             req.getRequestDispatcher("/WEB-INF/views/statistiques/index.jsp").forward(req, resp);

@@ -291,27 +291,27 @@
                     <div class="login-demo-label">Comptes de démonstration</div>
                     <div class="login-demo-btns">
                         <button type="button" class="login-demo-btn"
-                                onclick="fillDemo('chef','chef123')">
+                                onclick="fillDemo('chef','root123')">
                             <span class="login-demo-dot" style="background:oklch(0.56 0.18 22);"></span>
                             <div class="login-demo-info">
                                 <strong>Chef de département</strong>
-                                <span>login: chef · mot de passe: chef123</span>
+                                <span>login: chef · mot de passe: root123</span>
                             </div>
                         </button>
                         <button type="button" class="login-demo-btn"
-                                onclick="fillDemo('enseignant','prof123')">
+                                onclick="fillDemo('mabena','root123')">
                             <span class="login-demo-dot" style="background:oklch(0.56 0.16 252);"></span>
                             <div class="login-demo-info">
                                 <strong>Enseignant</strong>
-                                <span>login: enseignant · mot de passe: prof123</span>
+                                <span>login: mabena · mot de passe: root123</span>
                             </div>
                         </button>
                         <button type="button" class="login-demo-btn"
-                                onclick="fillDemo('etudiant','etud123')">
+                                onclick="fillDemo('labena','root123')">
                             <span class="login-demo-dot" style="background:oklch(0.58 0.14 160);"></span>
                             <div class="login-demo-info">
                                 <strong>Étudiant</strong>
-                                <span>login: etudiant · mot de passe: etud123</span>
+                                <span>login: labena · mot de passe: root123</span>
                             </div>
                         </button>
                     </div>
