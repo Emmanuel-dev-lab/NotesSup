@@ -69,6 +69,29 @@
             <version>2.17.0</version>
         </dependency>
 
+        <!--
+          SMSLib 3.x + lib série native : passerelle SMS réelle (modem GSM).
+          Absent de Maven Central. Pour activer SmslibGateway :
+            1. Installer le jar SMSLib dans le repo local, ex :
+               mvn install:install-file -Dfile=smslib-3.5.4.jar \
+                   -DgroupId=org.smslib -DartifactId=smslib -Dversion=3.5.4 -Dpackaging=jar
+            2. Dé-commenter les deux dépendances ci-dessous.
+            3. Dé-commenter le bloc doSend(...) dans SmslibGateway.java.
+            4. Lancer avec la variable d'env SMS_GATEWAY=smslib (+ modem branché).
+        -->
+        <!--
+        <dependency>
+            <groupId>org.smslib</groupId>
+            <artifactId>smslib</artifactId>
+            <version>3.5.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fazecast</groupId>
+            <artifactId>jSerialComm</artifactId>
+            <version>2.10.4</version>
+        </dependency>
+        -->
+
         <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>

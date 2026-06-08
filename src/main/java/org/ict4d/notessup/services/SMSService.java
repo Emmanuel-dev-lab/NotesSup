@@ -4,16 +4,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.ict4d.notessup.dao.EtudiantDAO;
 import org.ict4d.notessup.models.Etudiant;
+import org.ict4d.notessup.services.sms.SmsGateway;
+import org.ict4d.notessup.services.sms.SmsGatewayFactory;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 
 /**
- * Service pour envoyer des notifications SMS aux étudiants.
- * Actuellement simulé avec logging - peut être intégré avec une vraie API SMS.
+ * Service métier pour les notifications SMS aux étudiants.
+ * L'envoi réel est délégué à une {@link SmsGateway} (console par défaut,
+ * SMSLib si un modem GSM est configuré).
  */
 public class SMSService {
     private static final Logger logger = LoggerFactory.getLogger(SMSService.class);
     private final EtudiantDAO etudiantDAO;
+    private final SmsGateway gateway;
 
     // Modèles de messages
     private static final String PUBLICATION_TEMPLATE = "Bonjour %s, les notes de la session %s (%s) ont été publiées. Consultez votre bulletin sur la plateforme.";
@@ -21,6 +25,7 @@ public class SMSService {
 
     public SMSService() {
         this.etudiantDAO = new EtudiantDAO();
+        this.gateway = SmsGatewayFactory.get();
     }
 
     /**
@@ -35,7 +40,7 @@ public class SMSService {
         }
 
         String message = getPublicationMessage(etudiant, session, anneeAcademique);
-        return sendSMSSimulated(etudiant.getTelephone(), message);
+        return gateway.send(etudiant.getTelephone(), message);
     }
 
     /**
@@ -46,7 +51,7 @@ public class SMSService {
         for (Etudiant e : etudiants) {
             if (e.getTelephone() != null && !e.getTelephone().isEmpty()) {
                 String msg = getPublicationMessage(e, session, annee);
-                sendSMSSimulated(e.getTelephone(), msg);
+                gateway.send(e.getTelephone(), msg);
             }
         }
     }
@@ -68,7 +73,7 @@ public class SMSService {
         }
 
         String message = getAlertMessage(etudiant, session, anneeAcademique, moyennes);
-        return sendSMSSimulated(etudiant.getTelephone(), message);
+        return gateway.send(etudiant.getTelephone(), message);
     }
 
     /**
@@ -94,23 +99,5 @@ public class SMSService {
     public String getAlertMessage(Etudiant etudiant, String session, String anneeAcademique, BigDecimal moyenne) {
         String prenom = etudiant.getPrenom() != null ? etudiant.getPrenom() : "";
         return String.format(ALERT_TEMPLATE, prenom, session, anneeAcademique, moyenne);
-    }
-
-    /**
-     * Simule l'envoi d'un SMS en le loggant.
-     * @param phoneNumber Le numéro de téléphone
-     * @param message Le message à envoyer
-     * @return true si la simulation réussit
-     */
-    private boolean sendSMSSimulated(String phoneNumber, String message) {
-        try {
-            logger.info("SMS simulé -> {}: {}", phoneNumber, message);
-            // Ici, on pourrait intégrer une vraie API SMS (Twilio, AWS SNS, etc.)
-            // Pour l'instant, on simule avec un simple log
-            return true;
-        } catch (Exception e) {
-            logger.error("Erreur lors de l'envoi du SMS simulé: ", e);
-            return false;
-        }
     }
 }

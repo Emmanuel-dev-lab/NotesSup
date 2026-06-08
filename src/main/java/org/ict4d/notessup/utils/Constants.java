@@ -27,4 +27,21 @@ public class Constants {
 
     // Branches/Filières
     public static final String[] FILIERES = {"Informatique", "Génie Logiciel", "Réseaux et Télécoms", "Sécurité Informatique", "Data Science"};
+
+    // ===== SMS gateway =====
+    // Passerelle SMS active : "console" (log, par défaut) ou "smslib" (modem GSM réel).
+    // Surchargée par la variable d'environnement SMS_GATEWAY si présente.
+    public static final String SMS_GATEWAY = envOr("SMS_GATEWAY", "console");
+
+    // Configuration modem GSM (utilisée uniquement par SmslibGateway).
+    public static final String SMS_MODEM_PORT = envOr("SMS_MODEM_PORT", "/dev/ttyUSB0");
+    public static final int SMS_MODEM_BAUD = Integer.parseInt(envOr("SMS_MODEM_BAUD", "115200"));
+    public static final String SMS_MODEM_MANUFACTURER = envOr("SMS_MODEM_MANUFACTURER", "");
+    public static final String SMS_MODEM_MODEL = envOr("SMS_MODEM_MODEL", "");
+    public static final String SMS_MODEM_PIN = envOr("SMS_MODEM_PIN", "");
+
+    private static String envOr(String key, String def) {
+        String v = System.getenv(key);
+        return (v != null && !v.isBlank()) ? v : def;
+    }
 }
