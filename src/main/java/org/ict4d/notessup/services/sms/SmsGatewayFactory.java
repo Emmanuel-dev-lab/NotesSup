@@ -30,7 +30,9 @@ public final class SmsGatewayFactory {
 
     private static SmsGateway build(String name) {
         SmsGateway gateway;
-        if ("smslib".equalsIgnoreCase(name)) {
+        if ("africastalking".equalsIgnoreCase(name)) {
+            gateway = new AfricasTalkingGateway();
+        } else if ("smslib".equalsIgnoreCase(name)) {
             gateway = new SmslibGateway();
         } else {
             gateway = new ConsoleSmsGateway();

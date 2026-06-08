@@ -29,9 +29,14 @@ public class Constants {
     public static final String[] FILIERES = {"Informatique", "Génie Logiciel", "Réseaux et Télécoms", "Sécurité Informatique", "Data Science"};
 
     // ===== SMS gateway =====
-    // Passerelle SMS active : "console" (log, par défaut) ou "smslib" (modem GSM réel).
+    // Passerelle SMS active : "console" (log, défaut), "africastalking" ou "smslib".
     // Surchargée par la variable d'environnement SMS_GATEWAY si présente.
     public static final String SMS_GATEWAY = envOr("SMS_GATEWAY", "console");
+
+    // Africa's Talking credentials
+    public static final String AT_USERNAME = envOr("AT_USERNAME", "sandbox");
+    public static final String AT_API_KEY  = envOr("AT_API_KEY", "");
+    public static final boolean AT_SANDBOX = Boolean.parseBoolean(envOr("AT_SANDBOX", "true"));
 
     // Configuration modem GSM (utilisée uniquement par SmslibGateway).
     public static final String SMS_MODEM_PORT = envOr("SMS_MODEM_PORT", "/dev/ttyUSB0");
