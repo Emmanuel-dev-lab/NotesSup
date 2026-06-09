@@ -239,21 +239,6 @@
                 Plateforme pédagogique pour l'enseignement supérieur.<br>
                 Saisie des notes, délibérations, bulletins PDF.
             </p>
-
-            <div class="login-stats">
-                <div class="login-stat-item">
-                    <span class="login-stat-number">500+</span>
-                    <span class="login-stat-label">Étudiants</span>
-                </div>
-                <div class="login-stat-item">
-                    <span class="login-stat-number">30+</span>
-                    <span class="login-stat-label">Matières</span>
-                </div>
-                <div class="login-stat-item">
-                    <span class="login-stat-number">5</span>
-                    <span class="login-stat-label">Filières</span>
-                </div>
-            </div>
         </div>
 
         <!-- Right: Login form -->
