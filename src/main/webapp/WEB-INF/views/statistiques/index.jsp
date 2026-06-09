@@ -180,16 +180,19 @@
                 </div>
             </div>
 
-            <!-- Classement -->
+            <!-- Classement complet par moyenne générale -->
             <div class="card">
-                <div class="card-header"><h3>Classement général</h3></div>
+                <div class="card-header">
+                    <h3>Classement des étudiants par moyenne générale</h3>
+                    <p style="font-size:12px; color:var(--text-secondary); margin:4px 0 0 0;">Ranking basé sur la moyenne pondérée (${session} — ${anneeAcademique})</p>
+                </div>
                 <div class="table-container">
                     <table>
                         <thead>
                             <tr>
-                                <th>Rang</th>
+                                <th style="width:60px;">Rang</th>
                                 <th>Matricule</th>
-                                <th>Nom</th>
+                                <th>Étudiant</th>
                                 <th>Moyenne</th>
                                 <th>Mention</th>
                                 <th>Décision</th>
@@ -197,38 +200,41 @@
                         </thead>
                         <tbody>
                             <c:choose>
-                                <c:when test="${topStudents != null && !topStudents.isEmpty()}">
-                                    <c:forEach var="s" items="${topStudents}" varStatus="loop">
+                                <c:when test="${allStudentsRanked != null && !allStudentsRanked.isEmpty()}">
+                                    <c:forEach var="s" items="${allStudentsRanked}" varStatus="loop">
+                                        <c:set var="rank" value="${loop.index + 1}" />
+                                        <c:set var="moyenne" value="${s.value}" />
+                                        <c:set var="etudiant" value="${etudiantsMap[s.key]}" />
                                         <tr>
-                                            <td style="font-weight:700; font-size:16px;">
+                                            <td style="font-weight:700; font-size:16px; text-align:center;">
                                                 <c:choose>
-                                                    <c:when test="${loop.index == 0}">🥇</c:when>
-                                                    <c:when test="${loop.index == 1}">🥈</c:when>
-                                                    <c:when test="${loop.index == 2}">🥉</c:when>
-                                                    <c:otherwise>${loop.index + 1}</c:otherwise>
+                                                    <c:when test="${rank == 1}">🥇</c:when>
+                                                    <c:when test="${rank == 2}">🥈</c:when>
+                                                    <c:when test="${rank == 3}">🥉</c:when>
+                                                    <c:otherwise><span style="background:var(--border-light); padding:2px 8px; border-radius:4px; font-size:12px;">${rank}</span></c:otherwise>
                                                 </c:choose>
                                             </td>
-                                            <td class="td-mono" style="color:var(--accent-blue); font-size:12px;">${etudiantsMap[s.key].matricule}</td>
-                                            <td class="td-bold">${etudiantsMap[s.key].nom} ${etudiantsMap[s.key].prenom}</td>
+                                            <td class="td-mono" style="color:var(--accent-blue); font-size:12px; font-weight:500;">${etudiant.matricule}</td>
+                                            <td class="td-bold">${etudiant.nom} ${etudiant.prenom}</td>
                                             <td class="td-mono" style="font-weight:700;
-                                                color: ${s.value >= 16 ? '#059669' :
-                                                         s.value >= 14 ? '#0891b2' :
-                                                         s.value >= 12 ? '#7c3aed' :
-                                                         s.value >= 10 ? '#d97706' : '#dc2626'};">
-                                                <fmt:formatNumber value="${s.value}" maxFractionDigits="2"/>
+                                                color: ${moyenne >= 16 ? '#059669' :
+                                                         moyenne >= 14 ? '#0891b2' :
+                                                         moyenne >= 12 ? '#7c3aed' :
+                                                         moyenne >= 10 ? '#d97706' : '#dc2626'};">
+                                                <fmt:formatNumber value="${moyenne}" maxFractionDigits="2"/>/20
                                             </td>
                                             <td>
                                                 <c:choose>
-                                                    <c:when test="${s.value >= 16}"><span class="badge badge-success">Très Bien</span></c:when>
-                                                    <c:when test="${s.value >= 14}"><span class="badge badge-info">Bien</span></c:when>
-                                                    <c:when test="${s.value >= 12}"><span class="badge badge-purple">Assez Bien</span></c:when>
-                                                    <c:when test="${s.value >= 10}"><span class="badge badge-warning">Passable</span></c:when>
+                                                    <c:when test="${moyenne >= 16}"><span class="badge badge-success">Très Bien</span></c:when>
+                                                    <c:when test="${moyenne >= 14}"><span class="badge badge-info">Bien</span></c:when>
+                                                    <c:when test="${moyenne >= 12}"><span class="badge badge-purple">Assez Bien</span></c:when>
+                                                    <c:when test="${moyenne >= 10}"><span class="badge badge-warning">Passable</span></c:when>
                                                     <c:otherwise><span class="badge badge-danger">Ajourné</span></c:otherwise>
                                                 </c:choose>
                                             </td>
                                             <td>
                                                 <c:choose>
-                                                    <c:when test="${s.value >= 10}"><span class="badge badge-success">Admis(e)</span></c:when>
+                                                    <c:when test="${moyenne >= 10}"><span class="badge badge-success">Admis(e)</span></c:when>
                                                     <c:otherwise><span class="badge badge-danger">Ajourné(e)</span></c:otherwise>
                                                 </c:choose>
                                             </td>
@@ -236,7 +242,7 @@
                                     </c:forEach>
                                 </c:when>
                                 <c:otherwise>
-                                    <tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-muted);">Aucune donnée disponible</td></tr>
+                                    <tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-muted);">Aucun étudiant avec notes</td></tr>
                                 </c:otherwise>
                             </c:choose>
                         </tbody>
