@@ -40,8 +40,14 @@ public class EtudiantServlet extends HttpServlet {
         String action = req.getParameter("action");
         String page = req.getParameter("page");
         String search = req.getParameter("search");
+        String export = req.getParameter("export");
 
         try {
+            if ("csv".equals(export)) {
+                resp.sendRedirect(req.getContextPath() + "/export?type=etudiants");
+                return;
+            }
+
             if ("add".equals(action)) {
                 // Show add form
                 req.getRequestDispatcher("/WEB-INF/views/etudiants/form.jsp").forward(req, resp);
