@@ -143,6 +143,19 @@ public class UserDAO extends BaseDAO<User> {
         }
     }
 
+    /**
+     * Supprime le compte utilisateur lié à une fiche étudiant.
+     * Utile à la suppression d'un étudiant (pas de FK CASCADE sur user.etudiant_id).
+     */
+    public void deleteByEtudiantId(Long etudiantId) throws SQLException {
+        String sql = "DELETE FROM user WHERE etudiant_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, etudiantId);
+            pstmt.executeUpdate();
+        }
+    }
+
     private User mapUser(ResultSet rs) throws SQLException {
         User user = new User();
         user.setId(rs.getLong("id"));

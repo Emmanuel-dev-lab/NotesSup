@@ -59,6 +59,19 @@ public class EtudiantServlet extends HttpServlet {
                 req.setAttribute("etudiant", etudiant);
                 req.getRequestDispatcher("/WEB-INF/views/etudiants/form.jsp").forward(req, resp);
 
+            } else if ("delete".equals(action)) {
+                // Suppression d'un étudiant (lien GET depuis la liste). CHEF_DEPT uniquement.
+                if (!Constants.ROLE_CHEF.equals(role)) {
+                    resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+                    return;
+                }
+                Long id = Long.parseLong(req.getParameter("id"));
+                // Supprimer d'abord le compte lié (pas de FK CASCADE sur user.etudiant_id),
+                // puis l'étudiant (ses notes partent en CASCADE).
+                new org.ict4d.notessup.dao.UserDAO().deleteByEtudiantId(id);
+                etudiantDAO.delete(id);
+                resp.sendRedirect(req.getContextPath() + "/etudiants");
+
             } else {
                 // List all etudiants with pagination
                 int pageNum = page != null ? Integer.parseInt(page) : 1;
