@@ -25,20 +25,49 @@ public class ExportServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String type = req.getParameter("type");
+        String format = req.getParameter("format");
         String session = req.getParameter("session");
         String anneeAcademique = req.getParameter("annee");
 
+        if (type == null && "csv".equals(format)) {
+            type = "stats"; // default for /export?format=csv
+        } else if (type == null && "csv".equals(req.getParameter("export"))) {
+            type = "etudiants";
+        }
+
         try {
-            if ("csv".equals(type)) {
+            if ("csv".equals(type) || "notes".equals(type)) {
                 exportNotesCSV(resp, session, anneeAcademique);
             } else if ("stats".equals(type)) {
                 exportStatsCSV(resp, session, anneeAcademique);
+            } else if ("etudiants".equals(type)) {
+                exportEtudiantsCSV(resp);
             } else {
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Type export inconnu");
             }
         } catch (SQLException e) {
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Erreur: " + e.getMessage());
         }
+    }
+
+    private void exportEtudiantsCSV(HttpServletResponse resp) throws SQLException, IOException {
+        resp.setContentType("text/csv; charset=UTF-8");
+        resp.setHeader("Content-Disposition", "attachment; filename=export_etudiants.csv");
+
+        PrintWriter writer = resp.getWriter();
+        writer.println("MATRICULE,NOM,PRENOM,FILIERE,ANNEE,TELEPHONE");
+
+        List<Etudiant> etudiants = etudiantDAO.findAll(10000, 0);
+        for (Etudiant e : etudiants) {
+            writer.print(escapeCsv(e.getMatricule()) + ",");
+            writer.print(escapeCsv(e.getNom()) + ",");
+            writer.print(escapeCsv(e.getPrenom()) + ",");
+            writer.print(escapeCsv(e.getFiliere()) + ",");
+            writer.print(e.getAnnee() + ",");
+            writer.println(escapeCsv(e.getTelephone()));
+        }
+        writer.flush();
+        writer.close();
     }
 
     private void exportNotesCSV(HttpServletResponse resp, String session, String anneeAcademique) throws SQLException, IOException {

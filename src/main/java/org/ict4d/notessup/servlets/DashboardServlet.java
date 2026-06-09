@@ -10,6 +10,7 @@ import org.ict4d.notessup.utils.Constants;
 import org.ict4d.notessup.dao.EtudiantDAO;
 import org.ict4d.notessup.dao.NoteDAO;
 import org.ict4d.notessup.dao.MatiereDAO;
+import org.ict4d.notessup.dao.DeliberationDAO;
 import java.io.IOException;
 import java.sql.SQLException;
 
@@ -17,6 +18,7 @@ public class DashboardServlet extends HttpServlet {
     private final EtudiantDAO etudiantDAO = new EtudiantDAO();
     private final NoteDAO noteDAO = new NoteDAO();
     private final MatiereDAO matiereDAO = new MatiereDAO();
+    private final DeliberationDAO deliberationDAO = new DeliberationDAO();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -36,12 +38,15 @@ public class DashboardServlet extends HttpServlet {
                 int totalEtudiants = etudiantDAO.count();
                 int totalMatieres = matiereDAO.count();
                 int totalNotes = noteDAO.count();
+                int totalDeliberations = deliberationDAO.count();
 
                 req.setAttribute("totalEtudiants", totalEtudiants);
                 req.setAttribute("totalMatieres", totalMatieres);
                 req.setAttribute("totalNotes", totalNotes);
+                req.setAttribute("totalDeliberations", totalDeliberations);
                 req.setAttribute("filiereStats", noteDAO.getStatsPerFiliere("Normale", "2025-2026"));
                 req.setAttribute("userName", user.getNom());
+                req.setAttribute("deliberations", deliberationDAO.findAll(5, 0));
                 req.getRequestDispatcher("/WEB-INF/views/dashboard.jsp").forward(req, resp);
 
             } else if (Constants.ROLE_ENSEIGNANT.equals(role)) {
