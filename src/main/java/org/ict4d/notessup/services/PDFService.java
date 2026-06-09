@@ -87,31 +87,38 @@ public class PDFService {
     }
 
     private void addStyledHeader(Document document, String session, String anneeAcademique) {
-        Table headerTable = new Table(UnitValue.createPercentArray(new float[]{1, 4, 1}));
+        Table headerTable = new Table(UnitValue.createPercentArray(new float[] { 1, 4, 1 }));
         headerTable.setWidth(UnitValue.createPercentValue(100));
         headerTable.setMarginBottom(20);
 
         // Logo Gauche (Placeholder)
-        headerTable.addCell(new Cell().add(new Paragraph("Logo\nUniv.").setFontSize(8).setTextAlignment(TextAlignment.CENTER))
-                .setVerticalAlignment(VerticalAlignment.MIDDLE).setBorder(null));
+        headerTable.addCell(
+                new Cell().add(new Paragraph("Logo\nUniv.").setFontSize(8).setTextAlignment(TextAlignment.CENTER))
+                        .setVerticalAlignment(VerticalAlignment.MIDDLE).setBorder(null));
 
         // Info Centrale
-        Cell centerCell = new Cell().add(new Paragraph("Université de l'ICT").setBold().setFontSize(12).setTextAlignment(TextAlignment.CENTER))
-                .add(new Paragraph("UFR Sciences & Technologies · Département Informatique").setFontSize(9).setFontColor(ColorConstants.GRAY).setTextAlignment(TextAlignment.CENTER))
-                .add(new Paragraph("BULLETIN DE NOTES").setBold().setFontSize(18).setFontColor(NAVY).setMarginTop(5).setTextAlignment(TextAlignment.CENTER))
-                .add(new Paragraph("Session " + session + " — " + anneeAcademique).setFontSize(10).setTextAlignment(TextAlignment.CENTER))
+        Cell centerCell = new Cell()
+                .add(new Paragraph("Université de Yaoundé 1").setBold().setFontSize(12)
+                        .setTextAlignment(TextAlignment.CENTER))
+                .add(new Paragraph("UFR Sciences & Technologies · Département Informatique").setFontSize(9)
+                        .setFontColor(ColorConstants.GRAY).setTextAlignment(TextAlignment.CENTER))
+                .add(new Paragraph("BULLETIN DE NOTES").setBold().setFontSize(18).setFontColor(NAVY).setMarginTop(5)
+                        .setTextAlignment(TextAlignment.CENTER))
+                .add(new Paragraph("Session " + session + " — " + anneeAcademique).setFontSize(10)
+                        .setTextAlignment(TextAlignment.CENTER))
                 .setBorder(null);
         headerTable.addCell(centerCell);
 
         // Logo Droite (Placeholder)
-        headerTable.addCell(new Cell().add(new Paragraph("Logo\nDépt.").setFontSize(8).setTextAlignment(TextAlignment.CENTER))
-                .setVerticalAlignment(VerticalAlignment.MIDDLE).setBorder(null));
+        headerTable.addCell(
+                new Cell().add(new Paragraph("Logo\nDépt.").setFontSize(8).setTextAlignment(TextAlignment.CENTER))
+                        .setVerticalAlignment(VerticalAlignment.MIDDLE).setBorder(null));
 
         document.add(headerTable);
     }
 
     private void addStudentInfoGrid(Document document, Etudiant etudiant) {
-        Table infoTable = new Table(UnitValue.createPercentArray(new float[]{1, 1, 1}));
+        Table infoTable = new Table(UnitValue.createPercentArray(new float[] { 1, 1, 1 }));
         infoTable.setWidth(UnitValue.createPercentValue(100));
         infoTable.setMarginBottom(20);
 
@@ -133,21 +140,23 @@ public class PDFService {
     }
 
     private void addStyledNotesTable(Document document, List<Note> notes) throws SQLException {
-        Table table = new Table(UnitValue.createPercentArray(new float[]{12, 28, 10, 10, 10, 12, 18}));
+        Table table = new Table(UnitValue.createPercentArray(new float[] { 12, 28, 10, 10, 10, 12, 18 }));
         table.setWidth(UnitValue.createPercentValue(100));
 
         // Header
-        String[] headers = {"CODE", "MATIÈRE", "COEFF", "CC", "EXAM", "MOY", "MENTION"};
+        String[] headers = { "CODE", "MATIÈRE", "COEFF", "CC", "EXAM", "MOY", "MENTION" };
         for (String h : headers) {
-            table.addHeaderCell(new Cell().add(new Paragraph(h).setBold().setFontColor(ColorConstants.WHITE).setFontSize(9))
-                    .setBackgroundColor(NAVY).setPadding(8).setTextAlignment(TextAlignment.CENTER));
+            table.addHeaderCell(
+                    new Cell().add(new Paragraph(h).setBold().setFontColor(ColorConstants.WHITE).setFontSize(9))
+                            .setBackgroundColor(NAVY).setPadding(8).setTextAlignment(TextAlignment.CENTER));
         }
 
         BigDecimal totalPoints = BigDecimal.ZERO;
         int totalCoeff = 0;
 
         if (notes.isEmpty()) {
-            table.addCell(new Cell(1, 7).add(new Paragraph("Aucune note enregistrée").setTextAlignment(TextAlignment.CENTER).setPadding(20)));
+            table.addCell(new Cell(1, 7).add(
+                    new Paragraph("Aucune note enregistrée").setTextAlignment(TextAlignment.CENTER).setPadding(20)));
         } else {
             for (Note note : notes) {
                 Matiere matiere = matiereDAO.findById(note.getMatiereId());
@@ -160,7 +169,8 @@ public class PDFService {
 
                     BigDecimal finale = note.getNoteFinale();
                     DeviceRgb noteColor = getNoteColor(finale);
-                    table.addCell(createDataCell(formatNote(finale), TextAlignment.RIGHT).setBold().setFontColor(noteColor));
+                    table.addCell(
+                            createDataCell(formatNote(finale), TextAlignment.RIGHT).setBold().setFontColor(noteColor));
                     table.addCell(createDataCell(noteService.getMention(finale), TextAlignment.LEFT));
 
                     if (finale != null) {
@@ -177,10 +187,13 @@ public class PDFService {
         table.addCell(createTotalCell(totalCoeff > 0 ? String.valueOf(totalCoeff) : ""));
         table.addCell(new Cell().setBackgroundColor(NAVY).setBorder(null));
         table.addCell(new Cell().setBackgroundColor(NAVY).setBorder(null));
-        
-        BigDecimal moyenne = totalCoeff > 0 ? totalPoints.divide(new BigDecimal(totalCoeff), 2, RoundingMode.HALF_UP) : null;
+
+        BigDecimal moyenne = totalCoeff > 0 ? totalPoints.divide(new BigDecimal(totalCoeff), 2, RoundingMode.HALF_UP)
+                : null;
         table.addCell(createTotalCell(moyenne != null ? formatNote(moyenne) : ""));
-        table.addCell(createTotalCell(totalPoints.compareTo(BigDecimal.ZERO) > 0 ? totalPoints.setScale(2, RoundingMode.HALF_UP).toString() : ""));
+        table.addCell(createTotalCell(
+                totalPoints.compareTo(BigDecimal.ZERO) > 0 ? totalPoints.setScale(2, RoundingMode.HALF_UP).toString()
+                        : ""));
 
         document.add(table);
     }
@@ -195,25 +208,29 @@ public class PDFService {
                 .setBackgroundColor(NAVY).setPadding(8).setTextAlignment(TextAlignment.RIGHT);
     }
 
-    private void addResultBanner(Document document, Long etudiantId, String session, String anneeAcademique) throws SQLException {
+    private void addResultBanner(Document document, Long etudiantId, String session, String anneeAcademique)
+            throws SQLException {
         BigDecimal moyenne = noteService.calcMoyennePonderee(etudiantId, session, anneeAcademique);
-        if (moyenne == null) return;
-        
+        if (moyenne == null)
+            return;
+
         boolean admis = moyenne.compareTo(new BigDecimal("10")) >= 0;
         DeviceRgb bannerColor = admis ? SUCCESS : DANGER;
 
-        Table bannerTable = new Table(UnitValue.createPercentArray(new float[]{1, 1}));
+        Table bannerTable = new Table(UnitValue.createPercentArray(new float[] { 1, 1 }));
         bannerTable.setWidth(UnitValue.createPercentValue(100));
         bannerTable.setMarginTop(20);
-        bannerTable.setBackgroundColor(GRAY_LIGHT).setBorder(new com.itextpdf.layout.borders.SolidBorder(bannerColor, 1f));
+        bannerTable.setBackgroundColor(GRAY_LIGHT)
+                .setBorder(new com.itextpdf.layout.borders.SolidBorder(bannerColor, 1f));
 
         Cell leftCell = new Cell().add(new Paragraph("MOYENNE GÉNÉRALE").setFontSize(9).setFontColor(NAVY))
                 .add(new Paragraph(formatNote(moyenne) + "/20").setBold().setFontSize(22).setFontColor(bannerColor))
                 .setBorder(null).setPadding(15);
-        
+
         Cell rightCell = new Cell().add(new Paragraph(admis ? "✓ ADMIS(E)" : "✗ AJOURNÉ(E)")
                 .setBold().setFontSize(16).setFontColor(bannerColor).setTextAlignment(TextAlignment.RIGHT))
-                .add(new Paragraph(noteService.getMention(moyenne)).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
+                .add(new Paragraph(noteService.getMention(moyenne)).setFontSize(12)
+                        .setTextAlignment(TextAlignment.RIGHT))
                 .setBorder(null).setPadding(15).setVerticalAlignment(VerticalAlignment.MIDDLE);
 
         bannerTable.addCell(leftCell);
@@ -222,11 +239,11 @@ public class PDFService {
     }
 
     private void addSignatures(Document document) {
-        Table sigTable = new Table(UnitValue.createPercentArray(new float[]{1, 1, 1}));
+        Table sigTable = new Table(UnitValue.createPercentArray(new float[] { 1, 1, 1 }));
         sigTable.setWidth(UnitValue.createPercentValue(100));
         sigTable.setMarginTop(40);
 
-        String[] titles = {"Directeur de Filière", "Chef de Département", "Directeur des Études"};
+        String[] titles = { "Directeur de Filière", "Chef de Département", "Directeur des Études" };
         for (String title : titles) {
             sigTable.addCell(new Cell().add(new Paragraph(title).setFontSize(9).setBold().setMarginBottom(50))
                     .add(new LineSeparator(new SolidLine(0.5f)))
@@ -237,22 +254,29 @@ public class PDFService {
 
     private void addFooter(Document document) {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-        Paragraph footer = new Paragraph("Généré par NotesSup · ICT 423 · " + sdf.format(new Date()))
-                .setFontSize(8).setFontColor(ColorConstants.GRAY).setMarginTop(20).setTextAlignment(TextAlignment.CENTER);
+        Paragraph footer = new Paragraph("Généré par NotesSup · ICT 318 · " + sdf.format(new Date()))
+                .setFontSize(8).setFontColor(ColorConstants.GRAY).setMarginTop(20)
+                .setTextAlignment(TextAlignment.CENTER);
         document.add(footer);
     }
 
     private DeviceRgb getNoteColor(BigDecimal note) {
-        if (note == null) return NAVY;
-        if (note.compareTo(new BigDecimal("16")) >= 0) return SUCCESS;
-        if (note.compareTo(new BigDecimal("14")) >= 0) return INFO;
-        if (note.compareTo(new BigDecimal("12")) >= 0) return NAVY;
-        if (note.compareTo(new BigDecimal("10")) >= 0) return WARNING;
+        if (note == null)
+            return NAVY;
+        if (note.compareTo(new BigDecimal("16")) >= 0)
+            return SUCCESS;
+        if (note.compareTo(new BigDecimal("14")) >= 0)
+            return INFO;
+        if (note.compareTo(new BigDecimal("12")) >= 0)
+            return NAVY;
+        if (note.compareTo(new BigDecimal("10")) >= 0)
+            return WARNING;
         return DANGER;
     }
 
     private String formatNote(BigDecimal note) {
-        if (note == null) return "-";
+        if (note == null)
+            return "-";
         return note.setScale(2, RoundingMode.HALF_UP).toString();
     }
 }

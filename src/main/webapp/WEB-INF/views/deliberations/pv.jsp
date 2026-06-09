@@ -94,7 +94,7 @@
                     <h2>RÉPUBLIQUE DU CAMEROUN</h2>
                     <p>Paix - Travail - Patrie</p>
                     <div style="margin: 16px 0;">
-                        <strong>UNIVERSITÉ DE...</strong><br>
+                        <strong>UNIVERSITÉ DE YAOUNDÉ 1</strong><br>
                         FACULTÉ DES SCIENCES / DÉPARTEMENT D'INFORMATIQUE
                     </div>
                     <h3>PV DE DÉLIBÉRATION (PROVISOIRE)</h3>

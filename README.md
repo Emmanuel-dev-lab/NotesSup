@@ -135,5 +135,5 @@ NotesSup/
 
 ## 📄 Licence
 
-Ce projet est réalisé dans le cadre du cours **ICT 423**. 
+Ce projet est réalisé dans le cadre du cours **ICT 318**. 
 Usage académique uniquement.

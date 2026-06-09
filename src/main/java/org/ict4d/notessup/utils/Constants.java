@@ -31,7 +31,7 @@ public class Constants {
     // ===== SMS gateway =====
     // Passerelle SMS active : "console" (log, défaut), "africastalking" ou "smslib".
     // Surchargée par la variable d'environnement SMS_GATEWAY si présente.
-    public static final String SMS_GATEWAY = envOr("SMS_GATEWAY", "console");
+    public static final String SMS_GATEWAY = envOr("SMS_GATEWAY", "africastalking");
 
     // Africa's Talking credentials
     public static final String AT_USERNAME = envOr("AT_USERNAME", "sandbox");
