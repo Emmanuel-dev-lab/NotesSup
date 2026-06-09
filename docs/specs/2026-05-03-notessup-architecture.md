@@ -1,7 +1,7 @@
 # NotesSup — Spécification Architecture & Implémentation
 
 **Date:** 2026-05-03  
-**Projet:** NotesSup — Module Notes & Bulletins (ICT 423)  
+**Projet:** NotesSup — Module Notes & Bulletins (ICT 318)  
 **Scope:** Implémentation complète Jakarta EE 11 — application déployable, fonctionnelle.
 
 ---

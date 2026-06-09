@@ -1,6 +1,6 @@
 -- ============================================================
 --  NotesSup — Schéma complet + données de démonstration
---  Université de l'ICT — Département Informatique
+--  Université de Yaoundé 1 — Département Informatique
 --  Année académique 2025-2026 (Dump Complet - Cameroun Edition)
 -- ============================================================
 

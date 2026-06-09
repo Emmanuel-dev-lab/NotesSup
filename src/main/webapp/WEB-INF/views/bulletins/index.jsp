@@ -219,7 +219,7 @@
                                         value="${anneeAcademique != null ? anneeAcademique : '2025-2026'}"
                                         placeholder="Année (ex: 2025-2026)"
                                         style="width: 120px; padding:9px 12px; border-radius:8px; border:1.5px solid var(--border-medium); font-family:var(--font-base);" />
-                                        
+
                                     <c:if test="${sessionScope.user.role != 'ETUDIANT'}">
                                         <select name="etudiantId"
                                             style="padding:9px 12px; border-radius:8px; border:1.5px solid var(--border-medium); font-family:var(--font-base);">
@@ -231,15 +231,16 @@
                                         </select>
                                     </c:if>
                                     <c:if test="${sessionScope.user.role == 'ETUDIANT'}">
-                                        <input type="hidden" name="etudiantId" value="${sessionScope.user.etudiantId}" />
+                                        <input type="hidden" name="etudiantId"
+                                            value="${sessionScope.user.etudiantId}" />
                                     </c:if>
-                                    
+
                                     <select name="session"
                                         style="padding:9px 12px; border-radius:8px; border:1.5px solid var(--border-medium); font-family:var(--font-base);">
                                         <option value="NORMALE" ${selectedSession=='NORMALE' ? 'selected' : '' }>
                                             Session Normale</option>
-                                        <option value="RATTRAPAGE" ${selectedSession=='RATTRAPAGE' ? 'selected' : ''
-                                            }>Rattrapage</option>
+                                        <option value="RATTRAPAGE" ${selectedSession=='RATTRAPAGE' ? 'selected' : '' }>
+                                            Rattrapage</option>
                                     </select>
                                     <button type="submit" class="btn btn-ghost">Afficher</button>
                                 </form>
@@ -277,7 +278,7 @@
                                 <div class="bulletin-logos">
                                     <div class="bulletin-logo-box">Logo<br>Univ.</div>
                                     <div class="bulletin-center-info">
-                                        <div class="bulletin-univ">Université de l'ICT</div>
+                                        <div class="bulletin-univ">Université de Yaoundé 1</div>
                                         <div class="bulletin-dept">UFR Sciences &amp; Technologies · Département
                                             Informatique</div>
                                         <div class="bulletin-title">Bulletin de Notes</div>
@@ -406,12 +407,14 @@
                                         <tr class="bulletin-total-row">
                                             <td colspan="2">TOTAL / MOYENNE</td>
                                             <td style="font-family:var(--font-mono); text-align:center;">
-                                                <c:if test="${totalCoefficients > 0}">${totalCoefficients}</c:if></td>
+                                                <c:if test="${totalCoefficients > 0}">${totalCoefficients}</c:if>
+                                            </td>
                                             <td></td>
                                             <td></td>
                                             <td style="font-family:var(--font-mono); text-align:right;">
                                                 <c:if test="${moyenneGenerale != null}">
-                                                    <fmt:formatNumber value="${moyenneGenerale}" maxFractionDigits="2" />
+                                                    <fmt:formatNumber value="${moyenneGenerale}"
+                                                        maxFractionDigits="2" />
                                                 </c:if>
                                             </td>
                                             <td style="font-family:var(--font-mono); text-align:right;">
@@ -466,7 +469,7 @@
 
                                 <div
                                     style="text-align:center; margin-top:24px; font-size:11px; color:var(--text-muted);">
-                                    Généré par NotesSup · ICT 423 ·
+                                    Généré par NotesSup · ICT 318 ·
                                     <fmt:formatDate value="<%= new java.util.Date() %>" pattern="dd/MM/yyyy" />
                                 </div>
                             </div>
