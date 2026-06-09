@@ -52,9 +52,12 @@ public class AfricasTalkingGateway implements SmsGateway {
             return false;
         }
 
+        // Normaliser le numéro : supprimer les espaces (ex: "+237 670112233" → "+237670112233")
+        String normalizedPhone = phoneNumber.replaceAll("\\s+", "");
+
         try {
             String body = "username=" + encode(Constants.AT_USERNAME)
-                    + "&to=" + encode(phoneNumber)
+                    + "&to=" + encode(normalizedPhone)
                     + "&message=" + encode(message);
 
             HttpRequest request = HttpRequest.newBuilder()
@@ -70,14 +73,14 @@ public class AfricasTalkingGateway implements SmsGateway {
 
             boolean success = response.statusCode() == 201;
             if (success) {
-                logger.info("[SMS africastalking] Envoyé -> {} (statut={})", phoneNumber, response.statusCode());
+                logger.info("[SMS africastalking] Envoyé -> {} (statut={})", normalizedPhone, response.statusCode());
             } else {
-                logger.warn("[SMS africastalking] Échec -> {} (statut={}) : {}", phoneNumber, response.statusCode(), response.body());
+                logger.warn("[SMS africastalking] Échec -> {} (statut={}) : {}", normalizedPhone, response.statusCode(), response.body());
             }
             return success;
 
         } catch (Exception e) {
-            logger.error("[SMS africastalking] Erreur lors de l'envoi vers {}", phoneNumber, e);
+            logger.error("[SMS africastalking] Erreur lors de l'envoi vers {}", normalizedPhone, e);
             return false;
         }
     }

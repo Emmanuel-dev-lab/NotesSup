@@ -35,7 +35,7 @@ public class Constants {
 
     // Africa's Talking credentials
     public static final String AT_USERNAME = envOr("AT_USERNAME", "sandbox");
-    public static final String AT_API_KEY  = envOr("AT_API_KEY", "");
+    public static final String AT_API_KEY  = envOr("AT_API_KEY", "ATSK_KEY_REVOKED_AND_PURGED");
     public static final boolean AT_SANDBOX = Boolean.parseBoolean(envOr("AT_SANDBOX", "true"));
 
     // Configuration modem GSM (utilisée uniquement par SmslibGateway).
