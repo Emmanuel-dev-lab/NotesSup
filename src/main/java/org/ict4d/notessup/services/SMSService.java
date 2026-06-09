@@ -20,8 +20,8 @@ public class SMSService {
     private final SmsGateway gateway;
 
     // Modèles de messages
-    private static final String PUBLICATION_TEMPLATE = "Vos notes sont disponibles. Moyenne : %.2f/20. Mention : %s";
-    private static final String ALERT_TEMPLATE = "Attention : votre moyenne est de %.2f/20. Presentez-vous a la scolarite";
+    private static final String PUBLICATION_TEMPLATE = "Vos notes sont disponibles. Moyenne: %s sur 20. Mention: %s";
+    private static final String ALERT_TEMPLATE = "Attention: votre moyenne est de %s sur 20. Presentez-vous a la scolarite";
 
     public SMSService() {
         this.etudiantDAO = new EtudiantDAO();
@@ -96,15 +96,20 @@ public class SMSService {
      * @return Le message formaté
      */
     public String getPublicationMessage(BigDecimal moyenne, String mention) {
-        return String.format(java.util.Locale.US, PUBLICATION_TEMPLATE, moyenne, mention);
+        String moy = formatMoyenne(moyenne);
+        return String.format(PUBLICATION_TEMPLATE, moy, mention);
     }
 
-    /**
-     * Génère le message d'alerte en cas de non-admission.
-     * @param moyenne La moyenne générale
-     * @return Le message formaté
-     */
     public String getAlertMessage(BigDecimal moyenne) {
-        return String.format(java.util.Locale.US, ALERT_TEMPLATE, moyenne);
+        String moy = formatMoyenne(moyenne);
+        return String.format(ALERT_TEMPLATE, moy);
+    }
+
+    // Formate la moyenne avec virgule (ex: 17,20) pour éviter la confusion avec les heures
+    private String formatMoyenne(BigDecimal moyenne) {
+        if (moyenne == null) return "0,00";
+        return moyenne.setScale(2, java.math.RoundingMode.HALF_UP)
+                      .toPlainString()
+                      .replace('.', ',');
     }
 }

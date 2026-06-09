@@ -114,11 +114,28 @@ public class StatistiquesServlet extends HttpServlet {
                 etudiantAdmis.put(etudiant.getId(), noteService.isAdmis(safeMoyenne) ? 1 : 0);
             }
 
-            // Sort students by average (ranking) — filter out nulls for safety
-            List<Map.Entry<Long, BigDecimal>> topStudents = etudiantMoyennes.entrySet()
+            // Sort students by average (ranking) — complete list with rank number
+            List<Map.Entry<Long, BigDecimal>> allStudentsRanked = etudiantMoyennes.entrySet()
                     .stream()
-                    .filter(e -> e.getValue() != null)
+                    .filter(e -> e.getValue() != null && e.getValue().compareTo(BigDecimal.ZERO) > 0)
                     .sorted(Map.Entry.<Long, BigDecimal>comparingByValue().reversed())
+                    .collect(Collectors.toList());
+
+            // Build ranking map with rank number and student info
+            Map<Long, Map<String, Object>> rankingData = new java.util.LinkedHashMap<>();
+            int rank = 1;
+            for (Map.Entry<Long, BigDecimal> entry : allStudentsRanked) {
+                Map<String, Object> rankInfo = new java.util.HashMap<>();
+                rankInfo.put("rank", rank);
+                rankInfo.put("moyenne", entry.getValue());
+                rankInfo.put("mention", noteService.getMention(entry.getValue()));
+                rankInfo.put("admis", noteService.isAdmis(entry.getValue()));
+                rankingData.put(entry.getKey(), rankInfo);
+                rank++;
+            }
+
+            // Keep top 10 for dashboard widget
+            List<Map.Entry<Long, BigDecimal>> topStudents = allStudentsRanked.stream()
                     .limit(10)
                     .collect(Collectors.toList());
 
@@ -221,6 +238,8 @@ public class StatistiquesServlet extends HttpServlet {
             req.setAttribute("nonAdmisCount", nonAdmisCount);
             req.setAttribute("totalNotes", sessionNotes.size());
             req.setAttribute("topStudents", topStudents);
+            req.setAttribute("rankingData", rankingData);  // complete ranking with rank numbers
+            req.setAttribute("allStudentsRanked", allStudentsRanked);
             req.setAttribute("etudiantMoyennes", etudiantMoyennes);
             req.setAttribute("etudiantAdmis", etudiantAdmis);
             

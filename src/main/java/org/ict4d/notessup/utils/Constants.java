@@ -34,8 +34,10 @@ public class Constants {
     public static final String SMS_GATEWAY = envOr("SMS_GATEWAY", "africastalking");
 
     // Africa's Talking credentials
+    // Secrets fournis par variables d'environnement (voir .env, NON versionné).
+    // Aucune clé en dur : défaut vide pour ne jamais committer de secret.
     public static final String AT_USERNAME = envOr("AT_USERNAME", "sandbox");
-    public static final String AT_API_KEY  = envOr("AT_API_KEY", "ATSK_KEY_REVOKED_AND_PURGED");
+    public static final String AT_API_KEY  = envOr("AT_API_KEY", "");
     public static final boolean AT_SANDBOX = Boolean.parseBoolean(envOr("AT_SANDBOX", "true"));
 
     // Configuration modem GSM (utilisée uniquement par SmslibGateway).
