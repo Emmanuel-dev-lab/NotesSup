@@ -206,12 +206,12 @@
                                         <c:set var="moyenne" value="${s.value}" />
                                         <c:set var="etudiant" value="${etudiantsMap[s.key]}" />
                                         <tr>
-                                            <td style="font-weight:700; font-size:16px; text-align:center;">
+                                            <td style="font-weight:700; font-size:13px; text-align:center;">
                                                 <c:choose>
-                                                    <c:when test="${rank == 1}">🥇</c:when>
-                                                    <c:when test="${rank == 2}">🥈</c:when>
-                                                    <c:when test="${rank == 3}">🥉</c:when>
-                                                    <c:otherwise><span style="background:var(--border-light); padding:2px 8px; border-radius:4px; font-size:12px;">${rank}</span></c:otherwise>
+                                                    <c:when test="${rank == 1}"><span class="badge badge-success">1er</span></c:when>
+                                                    <c:when test="${rank == 2}"><span class="badge badge-info">2e</span></c:when>
+                                                    <c:when test="${rank == 3}"><span class="badge badge-purple">3e</span></c:when>
+                                                    <c:otherwise><span style="background:var(--border-light); padding:4px 10px; border-radius:6px; font-size:12px;">${rank}</span></c:otherwise>
                                                 </c:choose>
                                             </td>
                                             <td class="td-mono" style="color:var(--accent-blue); font-size:12px; font-weight:500;">${etudiant.matricule}</td>
