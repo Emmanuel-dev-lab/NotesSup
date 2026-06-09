@@ -26,7 +26,10 @@ public class Constants {
     public static final int DEFAULT_PAGE_SIZE = 6;
 
     // Branches/Filières
-    public static final String[] FILIERES = {"Informatique", "Génie Logiciel", "Réseaux et Télécoms", "Sécurité Informatique", "Data Science"};
+    // IMPORTANT : ces valeurs doivent correspondre EXACTEMENT aux chaînes stockées en base
+    // (colonne `filiere` de etudiant/matiere/user/deliberation), car le filtrage se fait
+    // par égalité exacte (WHERE filiere = ?). Le seed (schema.sql) utilise "Informatique" et "Réseaux".
+    public static final String[] FILIERES = {"Informatique", "Réseaux"};
 
     // ===== SMS gateway =====
     // Passerelle SMS active : "console" (log, défaut), "africastalking" ou "smslib".
