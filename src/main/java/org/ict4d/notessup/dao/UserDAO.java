@@ -100,7 +100,7 @@ public class UserDAO extends BaseDAO<User> {
 
     @Override
     public void insert(User user) throws SQLException {
-        String sql = "INSERT INTO user (login, password, role, nom, filiere) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO user (login, password, role, nom, filiere, etudiant_id) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, user.getLogin());
@@ -108,6 +108,13 @@ public class UserDAO extends BaseDAO<User> {
             pstmt.setString(3, user.getRole());
             pstmt.setString(4, user.getNom());
             pstmt.setString(5, user.getFiliere());
+            // etudiant_id : renseigné pour un compte ETUDIANT lié à une fiche,
+            // NULL pour un compte staff (chef/enseignant) sans fiche étudiant.
+            if (user.getEtudiantId() != null) {
+                pstmt.setLong(6, user.getEtudiantId());
+            } else {
+                pstmt.setNull(6, java.sql.Types.BIGINT);
+            }
             pstmt.executeUpdate();
         }
     }

@@ -46,6 +46,13 @@ public class BulletinServlet extends HttpServlet {
         String format = req.getParameter("format");
 
         if (Constants.ROLE_ETUDIANT.equals(role)) {
+            // Garde-fou : un compte ETUDIANT doit être lié à une fiche étudiant (etudiant_id).
+            // Sans ce lien, impossible d'afficher un bulletin → message clair au lieu d'un NullPointerException.
+            if (user.getEtudiantId() == null) {
+                req.setAttribute("error", "Votre compte n'est lié à aucune fiche étudiant. Contactez le chef de département.");
+                req.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(req, resp);
+                return;
+            }
             if (etudiantId == null || etudiantId.trim().isEmpty()) etudiantId = user.getEtudiantId().toString();
             if (sessionParam == null) sessionParam = "NORMALE";
             if (anneeAcademique == null) anneeAcademique = "2025-2026";
