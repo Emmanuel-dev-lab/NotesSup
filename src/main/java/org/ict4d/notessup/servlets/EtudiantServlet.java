@@ -159,10 +159,11 @@ public class EtudiantServlet extends HttpServlet {
                 // Auto-create User for the student
                 org.ict4d.notessup.models.User user = new org.ict4d.notessup.models.User();
                 user.setLogin(matricule);
-                String hashedPassword = org.mindrot.jbcrypt.BCrypt.hashpw("pass123", org.mindrot.jbcrypt.BCrypt.gensalt(10));
+                String hashedPassword = org.mindrot.jbcrypt.BCrypt.hashpw("root123", org.mindrot.jbcrypt.BCrypt.gensalt(10));
                 user.setPassword(hashedPassword);
                 user.setRole(Constants.ROLE_ETUDIANT);
-                user.setNom(req.getParameter("nom"));
+                // Nom complet = "prénom nom" (cohérent avec les données de démo, ex. "Luc Abena").
+                user.setNom(req.getParameter("prenom") + " " + req.getParameter("nom"));
                 user.setFiliere(req.getParameter("filiere"));
                 user.setEtudiantId(etudiant.getId());
                 
