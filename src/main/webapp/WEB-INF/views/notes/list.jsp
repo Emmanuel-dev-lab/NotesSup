@@ -120,8 +120,15 @@
                                             </td>
                                             <td style="font-size:12px; color:var(--text-muted);">${note.saisiePar}</td>
                                             <td>
-                                                <a href="${pageContext.request.contextPath}/notes?action=edit&id=${note.id}"
-                                                   class="btn btn-sm btn-ghost">✎</a>
+                                                <div style="display:flex; gap:6px;">
+                                                    <a href="${pageContext.request.contextPath}/notes?action=edit&id=${note.id}"
+                                                       class="btn btn-sm btn-ghost" title="Modifier">✎</a>
+                                                    <c:if test="${sessionScope.user.role == 'CHEF_DEPT'}">
+                                                        <a href="${pageContext.request.contextPath}/notes?action=delete&id=${note.id}"
+                                                           class="btn btn-sm btn-danger" title="Supprimer"
+                                                           onclick="return confirm('Supprimer cette note ?');">✕</a>
+                                                    </c:if>
+                                                </div>
                                             </td>
                                         </tr>
                                     </c:forEach>

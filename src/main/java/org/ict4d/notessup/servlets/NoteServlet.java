@@ -46,6 +46,17 @@ public class NoteServlet extends HttpServlet {
         String anneeAcademique = req.getParameter("annee");
 
         try {
+            if ("delete".equals(action)) {
+                // Suppression d'une note (lien GET depuis la liste). CHEF_DEPT uniquement.
+                if (!Constants.ROLE_CHEF.equals(role)) {
+                    resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+                    return;
+                }
+                noteDAO.delete(Long.parseLong(req.getParameter("id")));
+                resp.sendRedirect(req.getContextPath() + "/notes");
+                return;
+            }
+
             if ("grille".equals(action)) {
                 // Show grille de saisie des notes (CHEF or ENSEIGNANT)
                 if (!Constants.ROLE_CHEF.equals(role) && !Constants.ROLE_ENSEIGNANT.equals(role)) {

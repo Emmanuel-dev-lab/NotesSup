@@ -107,7 +107,7 @@ public class UserServlet extends HttpServlet {
             } else {
                 // Creation
                 if (password == null || password.trim().isEmpty()) {
-                    password = "pass123";
+                    password = "root123";
                 }
                 user.setPassword(BCrypt.hashpw(password, BCrypt.gensalt(10)));
                 userDAO.insert(user);
