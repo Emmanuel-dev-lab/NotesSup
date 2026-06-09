@@ -39,14 +39,36 @@
                 </div>
             </div>
 
-            <!-- Filière Toggles -->
+            <!-- Filière Toggles (préservent le niveau sélectionné) -->
+            <c:set var="niveauQS" value="${selectedNiveau != null ? '&niveau='.concat(selectedNiveau) : ''}" />
             <c:if test="${filieres != null}">
                 <div class="filiere-toggles">
-                    <a href="${pageContext.request.contextPath}/statistiques"
-                       class="toggle-btn ${selectedFiliere == null ? 'active' : ''}">Toutes</a>
+                    <a href="${pageContext.request.contextPath}/statistiques${selectedNiveau != null ? '?niveau='.concat(selectedNiveau) : ''}"
+                       class="toggle-btn ${selectedFiliere == null ? 'active' : ''}">Toutes filières</a>
                     <c:forEach var="f" items="${filieres}">
-                        <a href="${pageContext.request.contextPath}/statistiques?filiere=${f}"
+                        <a href="${pageContext.request.contextPath}/statistiques?filiere=${f}${niveauQS}"
                            class="toggle-btn ${selectedFiliere == f ? 'active' : ''}">${f}</a>
+                    </c:forEach>
+                </div>
+            </c:if>
+
+            <!-- Niveau Toggles (préservent la filière sélectionnée) -->
+            <c:set var="filiereQS" value="${selectedFiliere != null ? '&filiere='.concat(selectedFiliere) : ''}" />
+            <c:if test="${niveaux != null}">
+                <div class="filiere-toggles">
+                    <a href="${pageContext.request.contextPath}/statistiques${selectedFiliere != null ? '?filiere='.concat(selectedFiliere) : ''}"
+                       class="toggle-btn ${selectedNiveau == null ? 'active' : ''}">Tous niveaux</a>
+                    <c:forEach var="n" items="${niveaux}">
+                        <a href="${pageContext.request.contextPath}/statistiques?niveau=${n}${filiereQS}"
+                           class="toggle-btn ${selectedNiveau == n ? 'active' : ''}">
+                            <c:choose>
+                                <c:when test="${n == '1'}">L1</c:when>
+                                <c:when test="${n == '2'}">L2</c:when>
+                                <c:when test="${n == '3'}">L3</c:when>
+                                <c:when test="${n == '4'}">M1</c:when>
+                                <c:otherwise>M2</c:otherwise>
+                            </c:choose>
+                        </a>
                     </c:forEach>
                 </div>
             </c:if>
@@ -198,7 +220,19 @@
                 <div class="card">
                     <div class="card-header">
                         <h3>Classement des étudiants par moyenne générale</h3>
-                        <p style="font-size:12px; color:var(--text-secondary); margin:4px 0 0 0;">Ranking basé sur la moyenne pondérée (${session} — ${anneeAcademique})</p>
+                        <p style="font-size:12px; color:var(--text-secondary); margin:4px 0 0 0;">
+                            Moyenne pondérée · ${session} ${anneeAcademique}
+                            · Filière : ${selectedFiliere != null ? selectedFiliere : 'Toutes'}
+                            · Niveau :
+                            <c:choose>
+                                <c:when test="${selectedNiveau == '1'}">L1</c:when>
+                                <c:when test="${selectedNiveau == '2'}">L2</c:when>
+                                <c:when test="${selectedNiveau == '3'}">L3</c:when>
+                                <c:when test="${selectedNiveau == '4'}">M1</c:when>
+                                <c:when test="${selectedNiveau == '5'}">M2</c:when>
+                                <c:otherwise>Tous</c:otherwise>
+                            </c:choose>
+                        </p>
                     </div>
                     <div class="table-container">
                         <table>

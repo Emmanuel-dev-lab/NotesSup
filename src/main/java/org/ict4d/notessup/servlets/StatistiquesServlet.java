@@ -39,6 +39,7 @@ public class StatistiquesServlet extends HttpServlet {
         String sessionParam = req.getParameter("session");
         String anneeAcademique = req.getParameter("annee");
         String filiere = req.getParameter("filiere");
+        String niveau = req.getParameter("niveau"); // année d'étude (1..5), pour cloisonner le classement par niveau
 
         try {
             if (Constants.ROLE_ETUDIANT.equals(role) && user.getEtudiantId() != null) {
@@ -47,6 +48,7 @@ public class StatistiquesServlet extends HttpServlet {
             }
 
             String forcedFiliere = filiere;
+            final String forcedNiveau = (niveau != null && !niveau.isEmpty()) ? niveau : null;
             req.setAttribute("filieres", Constants.FILIERES);
 
             // Get all notes for the session
@@ -57,9 +59,12 @@ public class StatistiquesServlet extends HttpServlet {
                             (anneeAcademique == null || anneeAcademique.equals(n.getAnneeAcademique())))
                     .filter(n -> {
                         try {
-                            if (finalForcedFiliere1 == null) return true;
+                            if (finalForcedFiliere1 == null && forcedNiveau == null) return true;
                             Etudiant e = etudiantDAO.findById(n.getEtudiantId());
-                            return e != null && finalForcedFiliere1.equals(e.getFiliere());
+                            if (e == null) return false;
+                            if (finalForcedFiliere1 != null && !finalForcedFiliere1.equals(e.getFiliere())) return false;
+                            if (forcedNiveau != null && !forcedNiveau.equals(String.valueOf(e.getAnnee()))) return false;
+                            return true;
                         } catch (Exception e) { return false; }
                     })
                     .collect(Collectors.toList());
@@ -103,6 +108,10 @@ public class StatistiquesServlet extends HttpServlet {
 
             for (Etudiant etudiant : etudiants) {
                 if (forcedFiliere != null && !forcedFiliere.isEmpty() && !forcedFiliere.equals(etudiant.getFiliere())) {
+                    continue;
+                }
+                // Cloisonnement par niveau : un classement ne mélange pas L2 et L3 (matières différentes).
+                if (forcedNiveau != null && !forcedNiveau.equals(String.valueOf(etudiant.getAnnee()))) {
                     continue;
                 }
 
@@ -260,6 +269,8 @@ public class StatistiquesServlet extends HttpServlet {
             req.setAttribute("pourcentageAdmis", pourcentageAdmis);
             req.setAttribute("totalMatieres", totalMatieres);
             req.setAttribute("selectedFiliere", forcedFiliere);
+            req.setAttribute("selectedNiveau", forcedNiveau);
+            req.setAttribute("niveaux", new String[]{"1", "2", "3", "4", "5"});
 
             // Mention distribution
             req.setAttribute("tresBienCount", tresBienCount);
