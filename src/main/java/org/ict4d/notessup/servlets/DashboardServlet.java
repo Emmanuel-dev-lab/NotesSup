@@ -70,6 +70,29 @@ public class DashboardServlet extends HttpServlet {
                 if (user.getEtudiantId() != null) {
                     var etudiant = etudiantDAO.findById(user.getEtudiantId());
                     req.setAttribute("etudiant", etudiant);
+                    
+                    org.ict4d.notessup.services.NoteService noteService = new org.ict4d.notessup.services.NoteService();
+                    java.math.BigDecimal moyenne = noteService.calcMoyennePonderee(etudiant.getId(), "NORMALE", "2025-2026");
+                    req.setAttribute("moyenneGenerale", moyenne);
+                    if (moyenne != null) {
+                        req.setAttribute("mention", noteService.getMention(moyenne));
+                    }
+                    
+                    var notes = noteDAO.findByEtudiantSessionAnnee(etudiant.getId(), "NORMALE", "2025-2026");
+                    req.setAttribute("totalMatieres", notes.size());
+                    
+                    // Count validated
+                    int validees = 0;
+                    int credits = 0;
+                    for (var note : notes) {
+                        if (note.getNoteFinale() != null && note.getNoteFinale().compareTo(new java.math.BigDecimal("10")) >= 0) {
+                            validees++;
+                            var matiere = matiereDAO.findById(note.getMatiereId());
+                            if (matiere != null) credits += matiere.getCoefficient();
+                        }
+                    }
+                    req.setAttribute("matieresValidees", validees);
+                    req.setAttribute("creditsTotal", credits);
                 }
                 req.setAttribute("userName", user.getNom());
                 req.getRequestDispatcher("/WEB-INF/views/dashboard.jsp").forward(req, resp);

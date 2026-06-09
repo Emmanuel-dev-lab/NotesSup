@@ -327,54 +327,6 @@
                         </div>
                     </div>
 
-                    <%-- Notes table --%>
-                    <c:if test="${mesNotes != null && !mesNotes.isEmpty()}">
-                        <div class="card">
-                            <div class="card-header"><h3>Mes notes</h3></div>
-                            <div class="table-container">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Code</th>
-                                            <th>Matière</th>
-                                            <th>Coeff.</th>
-                                            <th>CC</th>
-                                            <th>Examen</th>
-                                            <th>Finale</th>
-                                            <th>Mention</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <c:forEach var="note" items="${mesNotes}">
-                                            <tr>
-                                                <td class="td-mono" style="color:var(--accent-blue);">${note.matiereCode}</td>
-                                                <td>${note.matiereNom}</td>
-                                                <td class="td-mono">${note.coefficient}</td>
-                                                <td class="td-mono"><fmt:formatNumber value="${note.noteCC}" maxFractionDigits="2"/></td>
-                                                <td class="td-mono"><fmt:formatNumber value="${note.noteExam}" maxFractionDigits="2"/></td>
-                                                <td class="td-mono" style="font-weight:700;
-                                                    color: ${note.noteFinale >= 16 ? '#059669' :
-                                                             note.noteFinale >= 14 ? '#0891b2' :
-                                                             note.noteFinale >= 12 ? '#7c3aed' :
-                                                             note.noteFinale >= 10 ? '#d97706' : '#dc2626'};">
-                                                    <fmt:formatNumber value="${note.noteFinale}" maxFractionDigits="2"/>
-                                                </td>
-                                                <td>
-                                                    <c:choose>
-                                                        <c:when test="${note.noteFinale >= 16}"><span class="badge badge-success">Très Bien</span></c:when>
-                                                        <c:when test="${note.noteFinale >= 14}"><span class="badge badge-info">Bien</span></c:when>
-                                                        <c:when test="${note.noteFinale >= 12}"><span class="badge badge-purple">Assez Bien</span></c:when>
-                                                        <c:when test="${note.noteFinale >= 10}"><span class="badge badge-warning">Passable</span></c:when>
-                                                        <c:otherwise><span class="badge badge-danger">Ajourné</span></c:otherwise>
-                                                    </c:choose>
-                                                </td>
-                                            </tr>
-                                        </c:forEach>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </c:if>
                 </c:when>
             </c:choose>
         </div>
