@@ -41,11 +41,27 @@ public class StatistiquesServlet extends HttpServlet {
         String filiere = req.getParameter("filiere");
 
         try {
+            if (Constants.ROLE_ETUDIANT.equals(role) && user.getEtudiantId() != null) {
+                handleEtudiantStats(req, resp, user.getEtudiantId(), sessionParam, anneeAcademique);
+                return;
+            }
+
+            String forcedFiliere = filiere;
+            req.setAttribute("filieres", Constants.FILIERES);
+
             // Get all notes for the session
             List<Note> allNotes = noteDAO.findAll(1000, 0);
+            String finalForcedFiliere1 = forcedFiliere;
             List<Note> sessionNotes = allNotes.stream()
                     .filter(n -> (sessionParam == null || sessionParam.equals(n.getSession())) &&
                             (anneeAcademique == null || anneeAcademique.equals(n.getAnneeAcademique())))
+                    .filter(n -> {
+                        try {
+                            if (finalForcedFiliere1 == null) return true;
+                            Etudiant e = etudiantDAO.findById(n.getEtudiantId());
+                            return e != null && finalForcedFiliere1.equals(e.getFiliere());
+                        } catch (Exception e) { return false; }
+                    })
                     .collect(Collectors.toList());
 
             // Calculate global statistics
@@ -86,21 +102,13 @@ public class StatistiquesServlet extends HttpServlet {
             Map<Long, Integer> etudiantAdmis = new HashMap<>();
 
             for (Etudiant etudiant : etudiants) {
-                // ETUDIANT can only see their own stats
-                if (Constants.ROLE_ETUDIANT.equals(role)) {
-                    if (!etudiant.getId().equals(user.getEtudiantId())) {
-                        continue;
-                    }
-                }
-
-                if (filiere != null && !filiere.isEmpty() && !filiere.equals(etudiant.getFiliere())) {
+                if (forcedFiliere != null && !forcedFiliere.isEmpty() && !forcedFiliere.equals(etudiant.getFiliere())) {
                     continue;
                 }
 
                 BigDecimal moyenne = noteService.calcMoyennePonderee(etudiant.getId(),
                         sessionParam != null ? sessionParam : "NORMALE",
                         anneeAcademique != null ? anneeAcademique : "2025-2026");
-                // Use ZERO instead of null to prevent NullPointerException during sorting
                 BigDecimal safeMoyenne = moyenne != null ? moyenne : BigDecimal.ZERO;
                 etudiantMoyennes.put(etudiant.getId(), safeMoyenne);
                 etudiantAdmis.put(etudiant.getId(), noteService.isAdmis(safeMoyenne) ? 1 : 0);
@@ -142,22 +150,47 @@ public class StatistiquesServlet extends HttpServlet {
             double passablePct = totalStudentsWithMoyenne > 0 ? (double) passableCount / totalStudentsWithMoyenne * 100 : 0;
             double ajournePct = totalStudentsWithMoyenne > 0 ? (double) ajourneCount / totalStudentsWithMoyenne * 100 : 0;
 
-            // Calculate pass rate per matiere
+            // Calculate pass rate and stats per matiere
             Map<Long, Double> matierePassRates = new HashMap<>();
+            Map<Long, Map<String, BigDecimal>> matiereStats = new HashMap<>();
             java.util.Map<Long, Matiere> matieresMap = new java.util.HashMap<>();
             int totalMatieres = 0;
             try {
-                var matieres = matiereDAO.findAll(1000, 0);
+                var matieres = (forcedFiliere != null && !forcedFiliere.isEmpty()) ? 
+                               matiereDAO.findByFiliere(forcedFiliere, 1000, 0) : 
+                               matiereDAO.findAll(1000, 0);
                 totalMatieres = matieres.size();
                 for (var matiere : matieres) {
                     matieresMap.put(matiere.getId(), matiere);
                     List<Note> matiereNotes = noteDAO.findByMatiere(matiere.getId(), 1000, 0);
+                    
                     if (!matiereNotes.isEmpty()) {
-                        long passCount = matiereNotes.stream()
-                                .filter(n -> n.getNoteFinale() != null && noteService.isAdmis(n.getNoteFinale()))
-                                .count();
-                        double passRate = (double) passCount / matiereNotes.size() * 100;
-                        matierePassRates.put(matiere.getId(), passRate);
+                        long passCount = 0;
+                        BigDecimal sum = BigDecimal.ZERO;
+                        BigDecimal max = BigDecimal.ZERO;
+                        BigDecimal min = new BigDecimal("20");
+                        int notesCount = 0;
+                        
+                        for (Note n : matiereNotes) {
+                            if (n.getNoteFinale() != null) {
+                                if (noteService.isAdmis(n.getNoteFinale())) passCount++;
+                                notesCount++;
+                                sum = sum.add(n.getNoteFinale());
+                                if (n.getNoteFinale().compareTo(max) > 0) max = n.getNoteFinale();
+                                if (n.getNoteFinale().compareTo(min) < 0) min = n.getNoteFinale();
+                            }
+                        }
+                        
+                        if (notesCount > 0) {
+                            double passRate = (double) passCount / notesCount * 100;
+                            matierePassRates.put(matiere.getId(), passRate);
+                            
+                            Map<String, BigDecimal> stats = new HashMap<>();
+                            stats.put("max", max);
+                            stats.put("min", min);
+                            stats.put("moy", sum.divide(new BigDecimal(notesCount), 2, RoundingMode.HALF_UP));
+                            matiereStats.put(matiere.getId(), stats);
+                        }
                     }
                 }
             } catch (SQLException e) {
@@ -196,18 +229,18 @@ public class StatistiquesServlet extends HttpServlet {
             req.setAttribute("etudiantsMap", etudiantsMap);
             
             req.setAttribute("matierePassRates", matierePassRates);
+            req.setAttribute("matiereStats", matiereStats);
             req.setAttribute("matieresMap", matieresMap);
             req.setAttribute("session", sessionParam != null ? sessionParam : "NORMALE");
             req.setAttribute("anneeAcademique", anneeAcademique != null ? anneeAcademique : "2025-2026");
-            req.setAttribute("filiere", filiere);
+            req.setAttribute("filiere", forcedFiliere);
 
             // Additional attributes expected by JSP
             req.setAttribute("totalEtudiants", totalEtudiants);
             req.setAttribute("moyenneGenerale", moyenneGenerale);
             req.setAttribute("pourcentageAdmis", pourcentageAdmis);
             req.setAttribute("totalMatieres", totalMatieres);
-            req.setAttribute("filieres", Constants.FILIERES);
-            req.setAttribute("selectedFiliere", filiere);
+            req.setAttribute("selectedFiliere", forcedFiliere);
 
             // Mention distribution
             req.setAttribute("tresBienCount", tresBienCount);
@@ -231,5 +264,66 @@ public class StatistiquesServlet extends HttpServlet {
                 resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             }
         }
+    }
+
+    private void handleEtudiantStats(HttpServletRequest req, HttpServletResponse resp, Long etudiantId, String sessionParam, String anneeAcademique) throws ServletException, IOException, SQLException {
+        Etudiant etudiant = etudiantDAO.findById(etudiantId);
+        String s = sessionParam != null ? sessionParam : "NORMALE";
+        String a = anneeAcademique != null ? anneeAcademique : "2025-2026";
+        
+        List<Note> mesNotes = noteDAO.findByEtudiantSessionAnnee(etudiantId, s, a);
+        
+        BigDecimal maMoyenne = noteService.calcMoyennePonderee(etudiantId, s, a);
+        String maMention = maMoyenne != null ? noteService.getMention(maMoyenne) : null;
+        
+        int matieresValidees = 0;
+        int credits = 0;
+        
+        // Subject stats
+        Map<Long, Map<String, BigDecimal>> subjectStats = new HashMap<>();
+        Map<Long, Matiere> matieresMap = new HashMap<>();
+        
+        for (Note n : mesNotes) {
+            Matiere m = matiereDAO.findById(n.getMatiereId());
+            matieresMap.put(m.getId(), m);
+            if (n.getNoteFinale() != null && n.getNoteFinale().compareTo(new BigDecimal("10")) >= 0) {
+                matieresValidees++;
+                credits += m.getCoefficient();
+            }
+            
+            // Calculate class stats for this subject
+            List<Note> allSubjectNotes = noteDAO.findByMatiere(m.getId(), 1000, 0);
+            BigDecimal sum = BigDecimal.ZERO;
+            BigDecimal max = BigDecimal.ZERO;
+            BigDecimal min = new BigDecimal("20");
+            int count = 0;
+            for (Note sn : allSubjectNotes) {
+                if (sn.getNoteFinale() != null) {
+                    count++;
+                    sum = sum.add(sn.getNoteFinale());
+                    if (sn.getNoteFinale().compareTo(max) > 0) max = sn.getNoteFinale();
+                    if (sn.getNoteFinale().compareTo(min) < 0) min = sn.getNoteFinale();
+                }
+            }
+            Map<String, BigDecimal> stats = new HashMap<>();
+            stats.put("max", max);
+            stats.put("min", count > 0 ? min : BigDecimal.ZERO);
+            stats.put("moy", count > 0 ? sum.divide(new BigDecimal(count), 2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
+            subjectStats.put(m.getId(), stats);
+        }
+        
+        req.setAttribute("etudiant", etudiant);
+        req.setAttribute("mesNotes", mesNotes);
+        req.setAttribute("matieresMap", matieresMap);
+        req.setAttribute("subjectStats", subjectStats);
+        req.setAttribute("maMoyenne", maMoyenne);
+        req.setAttribute("maMention", maMention);
+        req.setAttribute("matieresValidees", matieresValidees);
+        req.setAttribute("totalMatieres", mesNotes.size());
+        req.setAttribute("creditsTotal", credits);
+        req.setAttribute("session", s);
+        req.setAttribute("anneeAcademique", a);
+        
+        req.getRequestDispatcher("/WEB-INF/views/statistiques/etudiant.jsp").forward(req, resp);
     }
 }
