@@ -71,6 +71,11 @@ public class AuthenticationFilter implements Filter {
      * Role-based authorization check
      */
     private boolean hasPermission(String path, String role, String queryString) {
+        // La déconnexion est accessible à tout utilisateur connecté, quel que soit son rôle.
+        if (path.equals("/logout")) {
+            return true;
+        }
+
         // CHEF_DEPT has access to everything
         if ("CHEF_DEPT".equals(role)) {
             return true;
