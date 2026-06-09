@@ -77,7 +77,8 @@
         </div>
 
         <%
-            Throwable exception = (Throwable) request.getAttribute("javax.servlet.error.exception");
+            // Jakarta EE 11 : l'attribut est "jakarta.servlet.error.exception" (et non "javax...").
+            Throwable exception = (Throwable) request.getAttribute("jakarta.servlet.error.exception");
             if (exception != null) {
         %>
         <div class="error-details">
