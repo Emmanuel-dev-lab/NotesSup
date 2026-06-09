@@ -1,7 +1,6 @@
 package org.ict4d.notessup.servlets;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -15,7 +14,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
-@WebServlet("/users")
 public class UserServlet extends HttpServlet {
     private final UserDAO userDAO = new UserDAO();
     private static final int PAGE_SIZE = Constants.DEFAULT_PAGE_SIZE;
@@ -43,6 +41,10 @@ public class UserServlet extends HttpServlet {
                 User targetUser = userDAO.findById(Long.parseLong(id));
                 req.setAttribute("targetUser", targetUser);
                 req.getRequestDispatcher("/WEB-INF/views/users/form.jsp").forward(req, resp);
+            } else if ("delete".equals(action)) {
+                // Suppression d'un compte (lien GET depuis la liste). CHEF_DEPT déjà vérifié plus haut.
+                userDAO.delete(Long.parseLong(req.getParameter("id")));
+                resp.sendRedirect(req.getContextPath() + "/users");
             } else {
                 int pageNum = page != null ? Integer.parseInt(page) : 1;
                 int offset = (pageNum - 1) * PAGE_SIZE;

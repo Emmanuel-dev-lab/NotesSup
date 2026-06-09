@@ -141,6 +141,16 @@
         <url-pattern>/export</url-pattern>
     </servlet-mapping>
 
+    <!-- Users Servlet -->
+    <servlet>
+        <servlet-name>UserServlet</servlet-name>
+        <servlet-class>org.ict4d.notessup.servlets.UserServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UserServlet</servlet-name>
+        <url-pattern>/users</url-pattern>
+    </servlet-mapping>
+
     <!-- ===== ERROR PAGE CONFIGURATION ===== -->
     <!-- 404 Error Page -->
     <error-page>

@@ -54,6 +54,15 @@ public class MatiereServlet extends HttpServlet {
                 req.setAttribute("matiere", matiere);
                 req.getRequestDispatcher("/WEB-INF/views/matieres/form.jsp").forward(req, resp);
 
+            } else if ("delete".equals(action)) {
+                // Suppression d'une matière (lien GET depuis la liste). CHEF_DEPT uniquement.
+                if (!Constants.ROLE_CHEF.equals(role)) {
+                    resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Non autorisé");
+                    return;
+                }
+                matiereDAO.delete(Long.parseLong(req.getParameter("id")));
+                resp.sendRedirect(req.getContextPath() + "/matieres");
+
             } else {
                 // List all matieres with pagination
                 int pageNum = page != null ? Integer.parseInt(page) : 1;

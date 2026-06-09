@@ -134,12 +134,12 @@ public class ExportServlet extends HttpServlet {
 
         for (Etudiant etudiant : etudiants) {
             var moyenne = noteService.calcMoyennePonderee(etudiant.getId(),
-                    session != null ? session : "JUIN",
-                    anneeAcademique != null ? anneeAcademique : "2024/2025");
+                    session != null ? session : "NORMALE",
+                    anneeAcademique != null ? anneeAcademique : "2025-2026");
 
             var tauxReussite = noteService.calcTauxReussite(etudiant.getId(),
-                    session != null ? session : "JUIN",
-                    anneeAcademique != null ? anneeAcademique : "2024/2025");
+                    session != null ? session : "NORMALE",
+                    anneeAcademique != null ? anneeAcademique : "2025-2026");
 
             String statut = noteService.isAdmis(moyenne) ? "ADMIS" : "NON ADMIS";
 
