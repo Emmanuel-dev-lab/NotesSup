@@ -1,12 +1,13 @@
 package org.ict4d.notessup.utils;
 
 public class Constants {
-    // Database
-    public static final String DB_HOST = "localhost";
-    public static final String DB_PORT = "3306";
-    public static final String DB_NAME = "notessup_db";
-    public static final String DB_USER = "notessup_user";
-    public static final String DB_PASSWORD = "notessup_pass";
+    // Database — surchargeable par variables d'environnement, valeurs de
+    // developpement local par defaut (voir README pour la configuration).
+    public static final String DB_HOST = envOr("NOTESSUP_DB_HOST", "localhost");
+    public static final String DB_PORT = envOr("NOTESSUP_DB_PORT", "3306");
+    public static final String DB_NAME = envOr("NOTESSUP_DB_NAME", "notessup_db");
+    public static final String DB_USER = envOr("NOTESSUP_DB_USER", "notessup_user");
+    public static final String DB_PASSWORD = envOr("NOTESSUP_DB_PASSWORD", "notessup_pass");
     public static final String DB_URL = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT + "/" + DB_NAME
         + "?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8";
 
