@@ -133,6 +133,28 @@ NotesSup/
 
 ---
 
+## ⚠️ État du projet
+
+**Aucun test automatisé.** Rien dans ce dépôt n'est vérifié autrement qu'à la
+main — y compris le calcul des moyennes, le classement par niveau et filière, et
+la génération des PV de délibération, c'est-à-dire précisément le code où une
+erreur est invisible et sans recours. À utiliser en démonstration académique,
+pas pour gérer de vraies notes.
+
+Si ce projet devait être repris, l'ordre de priorité serait : tests unitaires
+sur `NoteService` (moyennes pondérées, coefficients, notes manquantes), puis sur
+le classement cloisonné, avant toute nouvelle fonctionnalité.
+
+## 🔒 Configuration
+
+Aucun identifiant n'est écrit dans le code : la connexion base et la passerelle
+SMS lisent leurs valeurs depuis l'environnement (`Constants.java`).
+
+L'historique de ce dépôt a été réécrit le 1er août 2026 pour en purger une clé
+API qui y avait été committée — voir l'issue #1 si vous avez un ancien clone.
+
+---
+
 ## 📄 Licence
 
 Ce projet est réalisé dans le cadre du cours **ICT 318**. 
